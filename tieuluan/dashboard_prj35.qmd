@@ -1,0 +1,51 @@
+---
+lang: vi
+crossref:
+  fig-title: Hình
+  fig-prefix: Hình
+format:
+  typst:
+    papersize: a4
+    mainfont: Times New Roman
+    fontsize: 11pt
+    margin: {left: 1cm, right: 1cm, top: 1cm, bottom: 1cm}
+    keep-typ: false
+---
+
+```{=typst}
+#set page(flipped: true, numbering: "1")
+```
+
+![Chương 3 · Chất lượng dữ liệu ban đầu](baocao/assets/dashboard_du_lieu_ban_dau.png){width=100%}
+
+{{< pagebreak >}}
+
+![Dashboard tiêu thụ điện theo thời gian](baocao/assets/dashboard_tieu_thu_300dpi.png){width=92%}
+
+{{< pagebreak >}}
+
+![Dashboard chất lượng và liên hệ bổ trợ](baocao/assets/dashboard_chat_luong_300dpi.png){width=92%}
+
+{{< pagebreak >}}
+
+![Heatmap tương quan đa biến](baocao/assets/heatmap_tuong_quan_300dpi.png){width=100%}
+
+{{< pagebreak >}}
+
+![Phân bố điện năng theo thứ](baocao/assets/boxplot_theo_thu_300dpi.png){width=100%}
+
+{{< pagebreak >}}
+
+![So sánh baseline, OLS và Random Forest trên validation](baocao/assets/dashboard_mo_hinh_validation_300dpi.png){width=100%}
+
+{{< pagebreak >}}
+
+![Đối chứng nhiệt độ quá khứ trên validation](baocao/assets/mo_hinh_doi_chung_thoi_tiet.png){width=100%}
+
+{{< pagebreak >}}
+
+![So sánh baseline, OLS và Random Forest trên test](baocao/assets/dashboard_mo_hinh_test_300dpi.png){width=100%}
+
+{{< pagebreak >}}
+
+![Diễn giải hệ số OLS và độ quan trọng đặc trưng Random Forest](baocao/assets/dashboard_dien_giai_4_5_300dpi.png){width=100%}

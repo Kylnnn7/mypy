@@ -1,0 +1,398 @@
+---
+title: "BÁO CÁO HIỂU DỮ LIỆU & KIỂM TOÁN TIỀN XỬ LÝ"
+subtitle: "Đề tài PRJ-35: Phân tích Tiêu thụ Điện năng Hộ gia đình và Dự báo Phụ tải Ngắn hạn"
+author:
+  - "Triệu Hoàng Lan Anh — MSSV: 2521001040"
+  - "Nguyễn Lâm Bình An — MSSV: 2521001033"
+date: today
+lang: vi
+format:
+  typst:
+    papersize: a4
+    margin:
+      x: 1.8cm
+      y: 2cm
+    toc: true
+    toc-depth: 3
+    number-sections: true
+---
+
+
+
+## TỔNG QUAN HỆ THỐNG DỮ LIỆU & BỐI CẢNH KINH DOANH
+
+### 1. Bối cảnh Nghiệp vụ & Bản chất Hoạt động
+- **Lĩnh vực hoạt động:** Quản lý dịch vụ tiện ích công cộng (Utility Management) và vận hành hệ sinh thái lưới điện thông minh (Smart Grid / Advanced Metering Infrastructure - AMI).
+- **Bản chất kinh doanh:** Bộ dữ liệu phản ánh toàn bộ hoạt động giám sát tiêu thụ điện năng dân dụng và sử dụng năng lượng thực tế của một hộ gia đình tại khu vực Sceaux (ngoại ô phía Nam Paris, Pháp) trong gần 4 năm (12/2006 – 11/2010).
+- **Ý nghĩa phân tích:** Bóc tách tổng công suất điện năng hữu ích (`Global_active_power`), công suất phản kháng, điện áp, cường độ dòng điện và cơ cấu phụ tải chi tiết tại 3 phân vùng sinh hoạt trọng yếu (Bếp, Giặt sấy, Điều nhiệt & Nóng lạnh), kết hợp với các biến số thời tiết ngoài trời (Nhiệt độ cảm nhận, Độ ẩm, Tốc độ gió, Lượng mưa). Từ đó giúp công ty điện lực dự báo chính xác phụ tải lưới điện ngắn hạn và hỗ trợ hộ gia đình tối ưu hóa hóa đơn tiền điện.
+- **Mối quan hệ đôi bên cùng có lợi (Win - Win):**
+  - *Về phía Hộ gia đình:* Tiết kiệm chi phí hóa đơn điện hàng tháng nhờ dịch chuyển hành vi sinh hoạt từ giờ cao điểm sang giờ thấp điểm.
+  - *Về phía Công ty Điện lực:* San bằng đỉnh phụ tải (Peak Shaving / Load Shifting), hạn chế quá tải máy biến áp cục bộ, giảm thiểu tổn thất truyền tải và tiết kiệm hàng triệu Euro chi phí đầu tư hạ tầng nguồn phát điện phụ trợ trong các đợt cao điểm.
+
+### 2. Các Phòng ban Quản lý & Khai thác Dữ liệu
+Dữ liệu được quản lý và phối hợp vận hành bởi 2 bộ phận chức năng cốt lõi:
+1. **Bộ phận Vận hành Lưới điện & Đo đạc Thông minh (Grid Operations & Smart Metering Unit):** Quản lý phần cứng, thu nhận tín hiệu liên tục từ công tơ điện tử thông minh (Smart Meter) và 3 nhánh cảm biến phụ tải nội bộ (Sub-metering).
+2. **Phòng Phân tích Nghiệp vụ & Quản trị Doanh thu (Utility Business Analytics & Revenue Management):** Tiếp nhận dữ liệu, thực hiện kiểm toán làm sạch, phân tích chu kỳ tiêu thụ theo thời gian, xây dựng mô hình dự báo phụ tải ngắn hạn (STLF) và thiết kế biểu giá điện linh hoạt theo khung giờ (Time-of-Use - TOU Tariff).
+
+### 3. Cơ chế Phát sinh Dữ liệu từ 2 Nguồn Độc lập
+1. **Bảng Điện năng Chính (CSV1):**
+   - *Phương thức thu thập:* Đồng hồ đo điện tử thông minh AMI đo đạc tự động 24/7 tại tủ điện tổng của hộ gia đình.
+   - *Tần suất ghi nhận:* Đúng **1 phút/lần** liên tục suốt 47 tháng (16/12/2006 đến 26/11/2010), sinh ra **2,075,259 bản ghi** chuỗi thời gian.
+2. **Bảng Khí tượng Phụ (CSV2):**
+   - *Phương thức thu thập:* Trích xuất tự động qua cổng API Open-Meteo Historical Weather từ trạm quan trắc khí hậu khu vực Paris (tọa độ Sceaux: 48.82°N, 2.28°E).
+   - *Tần suất ghi nhận:* Định kỳ **1 giờ/lần**, tương ứng **34,608 bản ghi** đồng bộ theo thời gian.
+
+---
+
+## PHẦN 1 — BẢNG ĐIỆN NĂNG CHÍNH (CSV1)
+
+### 1.1 Thông tin Chung: Bảng Này là Bảng Gì?
+- **Tên tệp lưu trữ:** `26_2521001040_Triệu Hoàng Lan Anh_CSV1.csv`
+- **Loại bảng:** Bảng dữ liệu chuỗi thời gian phụ tải điện năng hộ gia đình đo đếm cấp độ phút (Household Electric Power Consumption Time Series).
+- **Kích thước dữ liệu thô:** 2,075,259 dòng × 9 cột.
+- **Ký tự phân cách:** Dấu chấm phẩy (`;`).
+- **Phạm vi thời gian:** Từ 17:24 ngày 16/12/2006 đến 21:02 ngày 26/11/2010.
+- **Thiết bị đo:** Hệ thống công tơ AMI và các mạch đo dòng xoay chiều lắp tại bảng điện gia đình.
+
+---
+
+### 1.2 Danh mục Cột: Bảng Có Những Gì, Kiểu Dữ Liệu & Ý Nghĩa Giá Trị
+
+#### Bảng tổng hợp thuộc tính các trường dữ liệu (Data Dictionary — CSV1)
+
+| STT | Tên cột (Tên biến) | Kiểu dữ liệu gốc (Thô) | Kiểu dữ liệu chuẩn hóa | Đơn vị đo | Miền giá trị hợp lệ (Vật lý) | Ý nghĩa nghiệp vụ tóm tắt |
+|:---:|---|:---:|:---:|:---:|:---:|---|
+| 1 | `Date` | Chuỗi (`object`) | `datetime64[ns]` | Ngày (`dd/mm/yyyy`) | 16/12/2006 – 26/11/2010 | Ngày ghi nhận đo lường |
+| 2 | `Time` | Chuỗi (`object`) | `datetime64[ns]` | Giờ (`hh:mm:ss`) | 00:00:00 – 23:59:00 | Thời điểm phút ghi nhận trong ngày |
+| 3 | `Global_active_power` | Chuỗi (`object`) | `float32` | Kilowatt (kW) | [0.0, 11.0] kW | Công suất tác dụng toàn hộ (Biến mục tiêu Y) |
+| 4 | `Global_reactive_power` | Chuỗi (`object`) | `float32` | kVAR | [0.0, 2.0] kVAR | Công suất phản kháng (năng lượng từ hóa hao phí) |
+| 5 | `Voltage` | Chuỗi (`object`) | `float32` | Volt (V) | [210.0, 255.0] V | Điện áp lưới điện hiệu dụng (Chuẩn EN 50160) |
+| 6 | `Global_intensity` | Chuỗi (`object`) | `float32` | Ampere (A) | [0.0, 50.0] A | Cường độ dòng điện tổng chạy qua dây |
+| 7 | `Sub_metering_1` | Chuỗi (`object`) | `float32` | Watt-giờ (Wh) | [0.0, 90.0] Wh | Điện năng phân vùng 1: Bếp & Máy rửa bát |
+| 8 | `Sub_metering_2` | Chuỗi (`object`) | `float32` | Watt-giờ (Wh) | [0.0, 82.0] Wh | Điện năng phân vùng 2: Máy giặt, Máy sấy, Tủ lạnh |
+| 9 | `Sub_metering_3` | Chuỗi (`object`) | `float32` | Watt-giờ (Wh) | [0.0, 35.0] Wh | Điện năng phân vùng 3: Bình nóng lạnh & Máy sưởi |
+
+#### Chi tiết Ý nghĩa Kinh tế & Kỹ thuật Từng Biến
+
+1. **`Date` (Ngày ghi nhận — dd/mm/yyyy):**
+   - *Ý nghĩa Kinh tế:* Căn cứ pháp lý để chốt kỳ tính hóa đơn tiền điện hàng tháng; là cơ sở xác định yếu tố mùa vụ (mùa đông nhu cầu dùng sưởi cao vọt so với mùa hè) và phân định ngày làm việc trong tuần (Weekday) với ngày nghỉ cuối tuần (Weekend).
+   - *Ý nghĩa Kỹ thuật:* Trong tệp thô, đây là chuỗi văn bản không thể tính toán. Cần kết hợp cột `Date` và `Time` để sinh ra cột chỉ mục thời gian chuẩn `datetime`:
+     ```python
+     df['datetime'] = pd.to_datetime(df['Date'] + ' ' + df['Time'], dayfirst=True)
+     df = df.set_index('datetime')
+     ```
+
+2. **`Time` (Giờ ghi nhận — hh:mm:ss):**
+   - *Ý nghĩa Kinh tế:* Phân định chính xác các khung giờ cao điểm (Peak Hours: 09h–11h30 và 17h–20h) và giờ thấp điểm (Off-peak Hours: 22h–07h) theo biểu giá điện TOU của Pháp. Hộ gia đình dịch chuyển các phụ tải giặt sấy sang khung giờ thấp điểm sẽ giảm được 20–40% chi phí.
+   - *Ý nghĩa Kỹ thuật:* Dùng để trích xuất đặc trưng chuỗi thời gian như `hour`, `minute`, phục vụ xây dựng biểu đồ phân phối nhiệt (Heatmap 24h × 7 ngày) và đưa vào các biến đầu vào cho mô hình học máy.
+
+3. **`Global_active_power` (Công suất tác dụng tổng — kW):**
+   - *Ý nghĩa Kinh tế:* **BIẾN MỤC TIÊU CỐT LÕI (TARGET Y)**. Đo lường lượng điện năng thực tế sinh công có ích cho toàn bộ thiết bị trong nhà. Hóa đơn điện hàng tháng được tính trực tiếp từ tích phân của biến này theo thời gian.
+   - *Ý nghĩa Kỹ thuật:* Đơn vị Kilowatt (kW). Ngưỡng giới hạn kỹ thuật của aptomat tổng hộ gia đình là 50A × 220V ≈ 11 kW. Trong mô hình học máy dự báo phụ tải ngắn hạn (STLF), đây là biến `Y` cần dự báo:
+     ```python
+     Y = df['Global_active_power']
+     ```
+
+4. **`Global_reactive_power` (Công suất phản kháng tổng — kVAR):**
+   - *Ý nghĩa Kinh tế:* Lượng công suất "vô công" sinh ra bởi các phụ tải có cuộn cảm (động cơ máy giặt, máy nén tủ lạnh, chấn lưu đèn). Năng lượng này không sinh công hữu ích nhưng gây nóng đường dây và sụt áp lưới điện, buộc nhà máy điện phải trang bị tụ bù.
+   - *Ý nghĩa Kỹ thuật:* Dùng để tính toán Hệ số công suất (Power Factor) $\cos\varphi = \frac{P}{\sqrt{P^2 + Q^2}}$. Nếu hệ số $\cos\varphi < 0.85$, hệ thống cảnh báo hộ gia đình đang lãng phí điện năng do thiết bị hiệu suất thấp:
+     ```python
+     df['power_factor'] = df['Global_active_power'] / np.sqrt(
+         df['Global_active_power']**2 + df['Global_reactive_power']**2
+     )
+     ```
+
+5. **`Voltage` (Điện áp hiệu dụng — Volt):**
+   - *Ý nghĩa Kinh tế:* Thước đo chất lượng cung cấp điện của công ty điện lực. Tiêu chuẩn châu Âu EN 50160 quy định điện áp lưới dân dụng phải duy trì ở mức $230\text{V} \pm 10\%$ (dao động cho phép từ 207V đến 253V). Nếu điện áp chập chờn vượt ngưỡng, thiết bị gia dụng dễ hư hỏng.
+   - *Ý nghĩa Kỹ thuật:* Dùng làm biến kiểm tra chéo tính nhất quán vật lý giữa Công suất, Điện áp và Cường độ dòng điện: $P \approx V \times I \times \cos\varphi / 1000$.
+
+6. **`Global_intensity` (Cường độ dòng điện — Ampere):**
+   - *Ý nghĩa Kinh tế:* Thể hiện mức tải tức thời trên đường dây. Đỉnh cường độ dòng điện là căn cứ để công ty điện lực tính toán cỡ dây dẫn, công suất biến áp trạm và định mức phụ thu công suất đỉnh đối với khách hàng.
+   - *Ý nghĩa Kỹ thuật:* Đơn vị Ampere (A). Giới hạn vật lý tối đa là 50A (bảo vệ bởi aptomat nhánh chính). Có thể tính kiểm tra ngược: $I = \frac{P \times 1000}{V \times \cos\varphi}$.
+
+7. **`Sub_metering_1` (Điện năng Bếp & Máy rửa bát — Wh):**
+   - *Ý nghĩa Kinh tế:* Giúp chủ hộ nhận biết chi phí điện năng tiêu tốn cho việc nấu nướng và dọn dẹp nhà bếp, làm cơ sở lựa chọn thiết bị tiết kiệm điện (như bếp từ thay vì bếp điện mayso).
+   - *Ý nghĩa Kỹ thuật:* Đo lượng điện tích lũy trong khoảng thời gian 1 phút của nhánh mạch bếp. Đơn vị Watt-giờ (Wh). Quy đổi sang công suất tác dụng trung bình: $P_1 = \text{Sub}_1 \times \frac{60}{1000}\text{ kW}$.
+
+8. **`Sub_metering_2` (Điện năng Giặt sấy & Làm lạnh — Wh):**
+   - *Ý nghĩa Kinh tế:* Đo lường cụm máy giặt, máy sấy và tủ lạnh — chiếm khoảng 25–35% tổng điện tiêu thụ. Đây là nhóm phụ tải có tính "linh hoạt cao", dễ dàng vận động người dân dịch chuyển giờ giặt sang ban đêm để hưởng giá điện rẻ.
+   - *Ý nghĩa Kỹ thuật:* Đồ thị tiêu thụ của biến này có dạng "xung nhọn" đặc trưng mỗi khi motor vắt của máy giặt hoặc máy sấy khởi động.
+
+9. **`Sub_metering_3` (Điện năng Bình nóng lạnh & Điều nhiệt — Wh):**
+   - *Ý nghĩa Kinh tế:* Phụ tải chiếm tỷ trọng lớn nhất và nhạy cảm nhất với thời tiết ngoài trời. Mùa đông lạnh tại Paris kích hoạt máy sưởi chạy liên tục khiến cột này tăng vọt. Đây là biến "cầu nối" để đối soát tương quan với Bảng thời tiết CSV2.
+   - *Ý nghĩa Kỹ thuật:* Tương quan nghịch mạnh mẽ với nhiệt độ môi trường. Luôn thỏa mãn ràng buộc tổng năng lượng:
+     $$\text{Other\_Energy} = \left(\text{Global\_active\_power} \times \frac{1000}{60}\right) - (\text{Sub}_1 + \text{Sub}_2 + \text{Sub}_3) \ge 0$$
+
+---
+
+### 1.3 Nhận Diện Các Lỗi Có Trong Bảng CSV1
+
+Qua quá trình kiểm toán tự động bằng thuật toán Python trên toàn bộ 2,075,259 dòng, dữ liệu CSV1 xuất hiện **7 nhóm dị tật & lỗi dữ liệu nghiêm trọng**:
+
+1. **Lỗi NaN chuẩn (;;):** Xuất hiện do 2 dấu chấm phẩy liền kề trong tệp gốc, không chứa ký tự nào ở giữa.
+2. **Lỗi Ký hiệu rỗng dạng chuỗi:** Cảm biến ghi nhận các ký hiệu text thay cho giá trị khuyết: `?`, `-`, `null`, `NULL`, `None`, `N/A`.
+3. **Lỗi Tạp chất đơn vị/tiền tệ:** Chuỗi văn bản mang đơn vị hoặc tiền tệ bị nối đuôi vào giá trị số: `1.234USD`, `230.1VND`, `0.408kg`, `95%`.
+4. **Lỗi Dấu phẩy thập phân kiểu châu Âu:** Sử dụng dấu phẩy `,` thay vì dấu chấm `.` (ví dụ `1,234`), khiến Pandas nhận diện nhầm thành kiểu chuỗi (`object`).
+5. **Lỗi Mã Sentinel phần cứng quá tải (≥ 9000):** Cảm biến quá tải hoặc mất tín hiệu tự động xuất mã lỗi `9999` (không phải số đo thực).
+6. **Lỗi Giá trị âm (< 0):** Số đo xuất hiện dấu trừ (ví dụ `-1.0`, `-16.0`), vi phạm định luật bảo toàn năng lượng vì hộ gia đình không có tấm pin phát điện ngược lên lưới.
+7. **Lỗi Ngoại lai vi phạm giới hạn vật lý:** Các giá trị vượt quá giới hạn thiết kế của thiết bị đo và tiêu chuẩn điện lực châu Âu EN 50160.
+
+#### Bảng Kiểm toán Chi tiết Lỗi Từng Cột — Bảng CSV1
+
+| Tên cột dữ liệu | Tổng số ô | Ký hiệu rỗng chuỗi | Tạp chất ký tự / Đơn vị | Dấu phẩy thập phân | Mã Sentinel ≥ 9000 | Giá trị âm vô lý (< 0) | Ngoại lai vật lý | Tổng ô lỗi thực tế | Tỷ lệ lỗi (%) |
+|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| **Date** | 2,075,259 | 494,115 (23.81%) | 0 (0.00%) | 0 (0.00%) | 0 (0.00%) | 0 (0.00%) | 0 (0.00%) | **494,115** | **23.81%** |
+| **Time** | 2,075,259 | 346,064 (16.68%) | 0 (0.00%) | 0 (0.00%) | 0 (0.00%) | 0 (0.00%) | 0 (0.00%) | **346,064** | **16.68%** |
+| **Global_active_power** | 2,075,259 | 195,114 (9.40%) | 99,187 (4.78%) | 0 (0.00%) | 29,566 (1.42%) | 38,485 (1.85%) | 22,524 (1.09%) | **384,876** | **18.55%** |
+| **Global_reactive_power**| 2,075,259 | 126,119 (6.08%) | 150,977 (7.28%) | 0 (0.00%) | 17,788 (0.86%) | 23,762 (1.15%) | 15,271 (0.74%) | **333,917** | **16.09%** |
+| **Voltage** | 2,075,259 | 431,053 (20.77%) | 95,219 (4.59%) | 0 (0.00%) | 86,870 (4.19%) | 77,548 (3.74%) | 8,768 (0.42%) | **699,458** | **33.70%** |
+| **Global_intensity** | 2,075,259 | 199,626 (9.62%) | 128,663 (6.20%) | 0 (0.00%) | 30,276 (1.46%) | 34,021 (1.64%) | 10,337 (0.50%) | **402,923** | **19.42%** |
+| **Sub_metering_1** | 2,075,259 | 556,957 (26.84%) | 113,011 (5.45%) | 0 (0.00%) | 90,485 (4.36%) | 90,546 (4.36%) | 664 (0.03%) | **851,663** | **41.04%** |
+| **Sub_metering_2** | 2,075,259 | 334,344 (16.11%) | 152,923 (7.37%) | 0 (0.00%) | 53,181 (2.56%) | 55,909 (2.69%) | 5,485 (0.26%) | **601,842** | **29.00%** |
+| **Sub_metering_3** | 2,075,259 | 415,702 (20.03%) | 134,683 (6.49%) | 0 (0.00%) | 68,842 (3.32%) | 69,886 (3.37%) | 6,701 (0.32%) | **695,814** | **33.53%** |
+
+*Nhận xét tổng thể:* Toàn bộ bảng CSV1 có **4,810,672 ô lỗi**, chiếm **25.76%** tổng số ô dữ liệu. Đây là tỷ lệ dị tật rất cao, đòi hỏi quy trình xử lý bài bản.
+
+---
+
+### 1.4 Phương Án & Quy Trình Xử Lý Lỗi (CSV1)
+
+> ⚠️ **NGUYÊN TẮC VÀNG:** **TUYỆT ĐỐI KHÔNG XÓA BẢN GHI (`dropna`)!**  
+> Dữ liệu phụ tải điện năng là chuỗi thời gian liên tục với bước nhảy 1 phút/lần. Nếu xóa bất kỳ dòng nào, chuỗi thời gian sẽ đứt gãy, làm mất tính tuần hoàn và phá vỡ cấu trúc ma trận biến trễ (Lag features) trong học máy. Phương án chuẩn là: **Làm sạch ký tự $\rightarrow$ Ép kiểu số $\rightarrow$ Quy đổi dị tật về `NaN` $\rightarrow$ Tái lập trục thời gian $\rightarrow$ Nội suy tuyến tính theo thời gian.**
+
+#### Quy trình xử lý gồm 5 bước kỹ thuật:
+
+```python
+import pandas as pd
+import numpy as np
+
+# BƯỚC 1: Đọc dữ liệu nguyên bản với tất cả cột dạng chuỗi để không mất dấu lỗi
+df = pd.read_csv(
+    r"26_2521001040_Triệu Hoàng Lan Anh_CSV1.csv",
+    sep=";",
+    dtype=str,
+    keep_default_na=False
+)
+
+# BƯỚC 2: Xử lý ký hiệu rỗng và tạp chất đơn vị cho các cột số
+num_cols = [
+    'Global_active_power', 'Global_reactive_power', 'Voltage',
+    'Global_intensity', 'Sub_metering_1', 'Sub_metering_2', 'Sub_metering_3'
+]
+
+# Chuyển các ký hiệu rỗng quy ước thành NaN
+MISSING_STRS = ['?', 'null', 'NULL', 'None', 'N/A', '-', '']
+df.replace(MISSING_STRS, np.nan, inplace=True)
+
+for col in num_cols:
+    # Dùng regex loại bỏ toàn bộ đơn vị lạ (USD, VND, kg, %, đ...) chỉ giữ lại số, dấu chấm, dấu trừ
+    df[col] = df[col].astype(str).str.replace(r'[^\d,.\-]', '', regex=True)
+    # Chuẩn hóa dấu phẩy châu Âu thành dấu chấm thập phân chuẩn
+    df[col] = df[col].str.replace(',', '.', regex=False)
+    # Ép kiểu số thực an toàn (chuỗi lỗi tự chuyển thành NaN)
+    df[col] = pd.to_numeric(df[col], errors='coerce')
+
+# BƯỚC 3: Loại bỏ dị tật vật lý (Sentinel >= 9000, số âm, và ngưỡng EN 50160)
+PHYSICAL_LIMITS = {
+    'Global_active_power':   (0.0, 11.0),
+    'Global_reactive_power': (0.0, 2.0),
+    'Voltage':               (210.0, 255.0),
+    'Global_intensity':      (0.0, 50.0),
+    'Sub_metering_1':        (0.0, 90.0),
+    'Sub_metering_2':        (0.0, 82.0),
+    'Sub_metering_3':        (0.0, 35.0),
+}
+
+for col, (lower_bound, upper_bound) in PHYSICAL_LIMITS.items():
+    # Gán NaN cho tất cả các giá trị vi phạm biên vật lý hoặc mang mã sentinel
+    df.loc[(df[col] < lower_bound) | (df[col] > upper_bound), col] = np.nan
+
+# BƯỚC 4: Tái lập chỉ mục thời gian liên tục (1 phút/mẫu)
+# Ghép cột Date và Time thành Datetime, thiết lập chuỗi đủ 2,075,259 mốc
+full_date_range = pd.date_range(start='2006-12-16 17:24', end='2010-11-26 21:02', freq='1min')
+df.index = full_date_range
+
+# BƯỚC 5: Điền khuyết thiếu bằng nội suy tuyến tính chuỗi thời gian
+# Nội suy tuyến tính theo trục thời gian thực (nội suy điểm giữa)
+df[num_cols] = df[num_cols].interpolate(method='time')
+# Điền tiến và lùi cho các điểm khuyết ở hai đầu mút của chuỗi
+df[num_cols] = df[num_cols].ffill().bfill()
+```
+
+- *Lý do chọn phương pháp nội suy:* Biến đổi điện năng mang tính liên tục quán tính. Nội suy thời gian `interpolate(method='time')` phản ánh độ dốc tăng giảm thực tế của phụ tải giữa 2 thời điểm lân cận, chính xác và khoa học hơn việc điền giá trị trung bình (`mean`) hoặc trung vị (`median`).
+
+---
+
+## PHẦN 2 — BẢNG KHÍ TƯỢNG PHỤ (CSV2)
+
+### 2.1 Thông tin Chung: Bảng Này là Bảng Gì?
+- **Tên tệp lưu trữ:** `26_2521001040_Triệu Hoàng Lan Anh_CSV2.csv`
+- **Loại bảng:** Bảng dữ liệu chuỗi thời gian khí tượng lịch sử cấp độ giờ (Hourly Historical Weather Time Series).
+- **Nguồn dữ liệu:** Cổng dữ liệu khí hậu châu Âu Open-Meteo Historical Weather API.
+- **Kích thước dữ liệu thực tế:** 34,608 dòng × 6 cột (tương ứng 1,442 ngày × 24 giờ).
+- **Ký tự phân cách:** Dấu phẩy (`,`).
+- **Tọa độ địa lý trạm quan trắc:** Khu vực Sceaux, ngoại ô Paris (Vĩ độ: 48.82°N, Kinh độ: 2.28°E, Cao độ: 46m, Múi giờ: Europe/Berlin GMT+2) — hoàn toàn đồng nhất về mặt không gian với vị trí hộ gia đình ở Bảng CSV1.
+- **Cấu trúc dị thường (Header kép / Siêu dữ liệu):** Tệp chứa 2 dòng đầu là thông số cấu hình API của Open-Meteo, dòng thứ 3 mới là tên cột thực tế. Cần đọc bỏ bằng tham số `skiprows=2` hoặc thuật toán nhận diện tự động.
+
+---
+
+### 2.2 Danh mục Cột: Bảng Có Những Gì, Kiểu Dữ Liệu & Ý Nghĩa Giá Trị
+
+#### Bảng tổng hợp thuộc tính các trường dữ liệu (Data Dictionary — CSV2)
+
+| STT | Tên cột thực tế | Kiểu dữ liệu gốc | Kiểu dữ liệu chuẩn hóa | Đơn vị đo | Miền giá trị hợp lý | Ý nghĩa nghiệp vụ tóm tắt |
+|:---:|---|:---:|:---:|:---:|:---:|---|
+| 1 | `time` | Chuỗi (`object`) | `datetime64[ns]` | ISO 8601 (`YYYY-MM-DDTHH:MM`) | 16/12/2006 – 26/11/2010 | Khóa thời gian dùng để ghép bảng (`merge`) |
+| 2 | `RELATIVE_HUMIDITY_2M (%)` | Chuỗi (`object`) | `float32` | Phần trăm (%) | [0.0, 100.0]% | Độ ẩm không khí tương đối tại độ cao 2m |
+| 3 | `dew_point_2m (°C)` | Chuỗi (`object`) | `float32` | Độ Celsius (°C) | [-20.0, 30.0]°C | Nhiệt độ điểm sương ngưng tụ hơi nước |
+| 4 | `apparent_temperature (°C)`| Chuỗi (`object`) | `float32` | Độ Celsius (°C) | [-20.0, 45.0]°C | Nhiệt độ cảm nhận thực tế của cơ thể người |
+| 5 | `wind_speed_10m (km/h)` | Chuỗi (`object`) | `float32` | Kilomet/giờ (km/h) | [0.0, 150.0] km/h | Tốc độ gió đo ở độ cao chuẩn 10 mét |
+| 6 | `precipitation (mm)` | Chuỗi (`object`) | `float32` | Milimet (mm) | [0.0, 100.0] mm | Tổng lượng mưa tích lũy trong 1 giờ |
+
+#### Chi tiết Ý nghĩa Kinh tế & Kỹ thuật Từng Biến
+
+1. **`time` (Khóa thời gian đo lường khí tượng):**
+   - *Ý nghĩa Kinh tế:* Đóng vai trò là **khóa kết nối liên bảng (Foreign Key)** để đồng bộ thông tin thời tiết ngoài trời với mức tiêu thụ điện năng trong nhà của Bảng CSV1.
+   - *Ý nghĩa Kỹ thuật:* Chuỗi thời gian tuân theo chuẩn quốc tế ISO 8601: `2006-12-16T01:00`. Ký tự `T` ở giữa là ký tự phân tách bắt buộc giữa ngày và giờ. Tần suất đo đạc là 1 giờ/lần (tỷ lệ 1:60 so với tần suất 1 phút/lần của CSV1).
+
+2. **`RELATIVE_HUMIDITY_2M (%)` (Độ ẩm tương đối ở độ cao 2 mét):**
+   - *Ý nghĩa Kinh tế:* Vào mùa đông Paris, độ ẩm không khí rất cao (thường xuyên > 85%) kết hợp với nhiệt độ thấp làm tăng cảm giác buốt giá, khiến hộ dân sử dụng thiết bị sưởi nhiệt độ cao hơn. Trong truyền tải điện, độ ẩm cực cao dễ gây hiện tượng phóng điện vầng quang (Corona discharge) và tăng điện trở cách điện.
+   - *Ý nghĩa Kỹ thuật:* Luôn bị chặn biên vật lý nghiêm ngặt trong khoảng $[0\%, 100\%]$.
+
+3. **`dew_point_2m (°C)` (Nhiệt độ điểm sương ở độ cao 2 mét):**
+   - *Ý nghĩa Kinh tế:* Phản ánh nhiệt độ mà tại đó hơi nước bắt đầu ngưng tụ thành sương hoặc đóng băng trên bề mặt. Khi điểm sương dưới 0°C, nguy cơ băng tuyết bám vào dây dẫn điện và thiết bị phân phối tăng cao, có thể gây gián đoạn cấp điện.
+   - *Ý nghĩa Kỹ thuật:* Theo nhiệt động học khí quyển, **Điểm sương luôn phải nhỏ hơn hoặc bằng Nhiệt độ không khí** ($\text{dew\_point} \le \text{temperature}$). Giá trị âm hoàn toàn bình thường vào mùa đông tại châu Âu.
+
+4. **`apparent_temperature (°C)` (Nhiệt độ cảm nhận ngoài trời):**
+   - *Ý nghĩa Kinh tế:* **BIẾN GIẢI THÍCH NGOẠI SINH QUAN TRỌNG NHẤT**. Nhiệt độ cảm nhận (feels-like temperature) tính toán tổng hòa giữa nhiệt độ không khí, tốc độ gió và độ ẩm, phản ánh đúng cảm giác nhiệt sinh học của con người. Đây là nhân tố quyết định việc người dân bật máy sưởi (mùa đông) hay quạt mát (mùa hè).
+   - *Ý nghĩa Kỹ thuật:* Giá trị âm là quy luật khí hậu tự nhiên (Paris mùa đông có thể hạ xuống -10°C đến -15°C). **Tuyệt đối không được coi giá trị âm là lỗi để gán NaN**. Biến này có tương quan nghịch rất cao với cột `Sub_metering_3`.
+
+5. **`wind_speed_10m (km/h)` (Tốc độ gió ở độ cao 10 mét):**
+   - *Ý nghĩa Kinh tế:* Gió lạnh thổi qua khe cửa làm gia tăng thất thoát nhiệt của ngôi nhà, thúc đẩy nhu cầu sử dụng công suất sưởi bù nhiệt.
+   - *Ý nghĩa Kỹ thuật:* Đo theo tiêu chuẩn WMO. Luôn có giá trị không âm ($\ge 0\text{ km/h}$).
+
+6. **`precipitation (mm)` (Lượng mưa tích lũy):**
+   - *Ý nghĩa Kinh tế:* Ngày mưa nhiều làm giảm ánh sáng mặt trời, khiến người dân ở trong nhà nhiều hơn và tăng thời gian thắp sáng cũng như nấu nướng (`Sub_metering_1`).
+   - *Ý nghĩa Kỹ thuật:* Đại lượng không âm ($\ge 0\text{ mm}$). Phần lớn thời gian trong năm không mưa nên giá trị bằng 0 chiếm đa số.
+
+---
+
+### 2.3 Nhận Diện Các Lỗi Có Trong Bảng CSV2
+
+Kiểm toán dữ liệu CSV2 cho thấy các đặc trưng dị tật sau:
+1. **Lỗi Ký hiệu rỗng chuỗi:** Chiếm tỷ lệ phổ biến khi cảm biến thời tiết tạm thời gián đoạn truyền tin (`NULL`, `?`, `None`, `N/A`).
+2. **Lỗi Khuyết mốc thời gian:** Cột `time` có 4,628 ô bị thiếu hoặc định dạng chuỗi cụt.
+3. **Phân biệt Lỗi Thực và Lỗi Giả (False Positive):**
+   - *Chữ `T` trong cột `time`:* 86.63% ô cột `time` bị thuật toán ngây thơ đếm nhầm là "tạp chất ký tự" vì chứa chữ cái `T`. Đây là ký tự chuẩn của định dạng ISO 8601 (`YYYY-MM-DDTHH:MM`), **hoàn toàn không phải lỗi**.
+   - *Giá trị nhiệt độ âm:* Các giá trị âm ở `dew_point` (9.47%) và `apparent_temperature` (13.25%) là **hiện tượng khí hậu tự nhiên**, tuyệt đối không được xử lý như lỗi dữ liệu.
+
+#### Bảng Kiểm toán Chi tiết Lỗi Từng Cột — Bảng CSV2
+
+| Tên cột dữ liệu | Tổng số dòng | Ký hiệu rỗng chuỗi | Tạp chất ký tự thực tế | Giá trị âm vô lý | Tổng ô lỗi thực sự | Tỷ lệ lỗi thực tế (%) | Ghi chú kiểm toán |
+|---|:---:|:---:|:---:|:---:|:---:|:---:|---|
+| **time** | 34,608 | 4,628 | 0 | 0 | **4,628** | **13.37%** | Loại trừ false positive chữ `T` của ISO 8601 |
+| **RELATIVE_HUMIDITY_2M (%)** | 34,608 | 2,437 | 822 | 0 | **3,259** | **9.42%** | Tạp chất chữ lẫn số |
+| **dew_point_2m (°C)** | 34,608 | 3,865 | 1,287 | 0 | **5,152** | **14.89%** | Giữ nguyên 3,278 ô âm (khí hậu đông) |
+| **apparent_temperature (°C)**| 34,608 | 2,253 | 0 | 0 | **2,253** | **6.51%** | Giữ nguyên 4,584 ô âm (khí hậu đông) |
+| **wind_speed_10m (km/h)** | 34,608 | 5,672 | 0 | 0 | **5,672** | **16.39%** | Không có giá trị âm |
+| **precipitation (mm)** | 34,608 | 4,443 | 0 | 0 | **4,443** | **12.84%** | Không có giá trị âm |
+
+---
+
+### 2.4 Phương Án & Quy Trình Xử Lý Lỗi (CSV2)
+
+```python
+# BƯỚC 1: Bỏ 2 dòng siêu dữ liệu metadata, nạp đúng tên cột
+df_weather = pd.read_csv(
+    r"26_2521001040_Triệu Hoàng Lan Anh_CSV2.csv",
+    skiprows=2
+)
+
+# Chuẩn hóa tên cột sang định dạng snake_case quốc tế
+df_weather.columns = [
+    'datetime', 'relative_humidity_pct', 'dew_point_c',
+    'apparent_temperature_c', 'wind_speed_kmh', 'precipitation_mm'
+]
+
+# BƯỚC 2: Chuyển ký hiệu rỗng thành NaN và ép kiểu số
+MISSING_SYMBOLS = ['?', 'null', 'NULL', 'None', 'N/A', '-', '']
+df_weather.replace(MISSING_SYMBOLS, np.nan, inplace=True)
+
+numeric_weather_cols = [
+    'relative_humidity_pct', 'dew_point_c',
+    'apparent_temperature_c', 'wind_speed_kmh', 'precipitation_mm'
+]
+df_weather[numeric_weather_cols] = df_weather[numeric_weather_cols].apply(
+    pd.to_numeric, errors='coerce'
+)
+
+# BƯỚC 3: Tái tạo trục thời gian 1 giờ/lần liên tục từ 16/12/2006 đến 26/11/2010
+df_weather['datetime'] = pd.date_range(start='2006-12-16 00:00', periods=34608, freq='1h')
+df_weather.set_index('datetime', inplace=True)
+
+# BƯỚC 4: Điền khuyết phân tầng
+# - Các biến liên tục (nhiệt độ, độ ẩm, gió, điểm sương): Nội suy tuyến tính
+continuous_cols = ['relative_humidity_pct', 'dew_point_c', 'apparent_temperature_c', 'wind_speed_kmh']
+df_weather[continuous_cols] = df_weather[continuous_cols].interpolate(method='time').ffill().bfill()
+
+# - Biến lượng mưa: Điền mặc định bằng 0.0 mm (giả định chuẩn khi không có mưa)
+df_weather['precipitation_mm'] = df_weather['precipitation_mm'].fillna(0.0)
+
+# BƯỚC 5: Chặn biên vật lý cho độ ẩm và tốc độ gió
+df_weather['relative_humidity_pct'] = df_weather['relative_humidity_pct'].clip(lower=0.0, upper=100.0)
+df_weather['wind_speed_kmh'] = df_weather['wind_speed_kmh'].clip(lower=0.0)
+df_weather['precipitation_mm'] = df_weather['precipitation_mm'].clip(lower=0.0)
+```
+
+---
+
+## PHẦN 3 — ĐỐI SOÁT TỔNG HỢP & CHIẾN LƯỢC TÍCH HỢP ĐA QUY MÔ
+
+### 3.1 Bảng Đối Soát Tổng Thể Giữa 2 Bộ Dữ Liệu
+
+| Tiêu chí so sánh | Bảng Điện năng (CSV1) | Bảng Khí tượng (CSV2) | Tương quan & Thách thức kỹ thuật |
+|---|:---:|:---:|---|
+| **Số lượng bản ghi** | 2,075,259 dòng | 34,608 dòng | Chênh lệch tỷ lệ dòng xấp xỉ 60:1 |
+| **Tần suất quan trắc** | 1 phút/lần | 1 giờ/lần | Đa quy mô thời gian (Multi-frequency time scale) |
+| **Số thuộc tính** | 9 cột | 6 cột | Cần chọn lọc biến có ý nghĩa giải thích |
+| **Tổng số ô dữ liệu** | 18,677,331 ô | 207,648 ô | Quy mô dữ liệu CSV1 lớn gấp 90 lần CSV2 |
+| **Tổng số ô lỗi** | 4,810,672 ô (25.76%) | 20,755 ô (~10.0%) | Cả hai bảng đều bị ô nhiễm dữ liệu nặng |
+| **Vị trí địa lý** | Sceaux (Nam Paris) | Sceaux (Nam Paris) | Tương thích không gian 100% |
+
+### 3.2 Chiến Lược Ghép Nối Đa Quy Mô (Resample & Merge)
+Do sự chênh lệch tần suất giữa phút (CSV1) và giờ (CSV2), không thể ghép nối ngang trực tiếp. Chiến lược tích hợp tối ưu bao gồm:
+1. **Lấy mẫu lại (Resample) CSV1:** Gom cụm chuỗi thời gian CSV1 từ cấp 1 phút sang cấp 1 giờ bằng phép toán lấy trung bình (`resample('1h').mean()`), tạo ra bảng điện năng sạch có đúng 34,608 dòng.
+2. **Ghép nối bảng (Inner Merge):** Thực hiện kết nối Bảng điện năng giờ với Bảng thời tiết giờ qua chỉ mục chung `datetime`.
+3. **Bộ dữ liệu hợp nhất hoàn chỉnh:** Đạt quy mô 34,608 dòng × 12 cột đặc trưng sạch, sẵn sàng phục vụ phân tích chuyên sâu và huấn luyện Machine Learning.
+
+---
+
+## PHẦN 4 — MỤC TIÊU PHÂN TÍCH & 3 CÂU HỎI KINH DOANH CỐT LÕI
+
+Mục tiêu của đề tài PRJ-35 là vận dụng bộ dữ liệu hợp nhất đã được làm sạch để trả lời trọn vẹn 3 câu hỏi kinh doanh chiến lược:
+
+### Câu hỏi 1 (Q1) — Phân tích Chu kỳ Phụ tải & Xác định Đỉnh Tiêu thụ (Peak Load)
+- **Nội dung câu hỏi:** Hộ gia đình có mô hình tiêu thụ điện biến thiên theo chu kỳ thời gian (giờ trong ngày, ngày trong tuần, mùa trong năm) như thế nào? Đỉnh phụ tải xuất hiện vào khung giờ nào và sự khác biệt giữa ngày thường với ngày cuối tuần có ý nghĩa thống kê hay không?
+- **Biến phân tích:** `Global_active_power`, `Sub_metering_2`, các đặc trưng `hour`, `weekday`, `month`.
+- **Phương pháp thực thi:**
+  - Vẽ biểu đồ nhiệt Heatmap 24 giờ × 7 ngày thể hiện cường độ tiêu thụ.
+  - Kiểm định giả thuyết thống kê: **Two-sample Independent t-test** so sánh mức tiêu thụ giữa ngày làm việc và cuối tuần; **One-way ANOVA** kiểm tra sự khác biệt qua 4 mùa.
+
+### Câu hỏi 2 (Q2) — Phân rã Cơ cấu Thiết bị & Đánh giá Tác động của Yếu tố Khí tượng
+- **Nội dung câu hỏi:** Trong 3 nhóm thiết bị đo đếm (Bếp, Giặt sấy, Điều nhiệt & Nóng lạnh), nhóm nào chiếm tỷ trọng tiêu thụ điện lớn nhất? Nhiệt độ cảm nhận ngoài trời tại Paris tác động như thế nào đến mức tiêu thụ của từng nhóm?
+- **Biến phân tích:** `Sub_metering_1`, `Sub_metering_2`, `Sub_metering_3` (CSV1) và `apparent_temperature_c` (CSV2).
+- **Phương pháp thực thi:**
+  - Biểu đồ diện tích xếp chồng (Stacked Area Chart) bóc tách tỷ trọng 3 phân vùng năng lượng.
+  - Ma trận hệ số tương quan Pearson Heatmap giữa các yếu tố thời tiết và phụ tải.
+  - Kiểm định t-test mức tiêu thụ điện sưởi (`Sub_metering_3`) giữa nhóm ngày rét đậm ($< 10^\circ\text{C}$) và ngày ấm áp ($\ge 10^\circ\text{C}$).
+
+### Câu hỏi 3 (Q3) — Xây dựng Mô hình Học máy Dự báo Phụ tải Ngắn hạn (STLF)
+- **Nội dung câu hỏi:** Mô hình học máy nào (Hồi quy tuyến tính OLS, Hồi quy Ridge/Lasso, Rừng ngẫu nhiên Random Forest Regressor) đạt độ chính xác cao nhất khi dự báo công suất tiêu thụ trung bình giờ ($Y = \text{Global\_active\_power}$)?
+- **Đặc trưng đầu vào (Features X):**
+  - Đặc trưng lịch: `hour`, `weekday`, `month`, `is_weekend`.
+  - Đặc trưng chuỗi thời gian: Biến trễ $\text{lag}_{1\text{h}}$, $\text{lag}_{24\text{h}}$, Trung bình trượt $\text{rolling\_mean}_{24\text{h}}$.
+  - Đặc trưng thời tiết ngoại sinh: `apparent_temperature_c`, `relative_humidity_pct`, `wind_speed_kmh`.
+- **Phương pháp thực thi:**
+  - Chia tập Train/Test theo thứ tự thời gian (Time-series split: 80% train, 20% test).
+  - So sánh hiệu năng các mô hình qua các chỉ số đánh giá: $R^2$ (Hệ số xác định), $\text{RMSE}$ (Căn bậc hai sai số toàn phương trung bình), $\text{MAE}$ (Sai số tuyệt đối trung bình).
+  - Đóng gói mô hình đạt kết quả tối ưu nhất bằng thư viện `joblib`.

@@ -1,0 +1,842 @@
+---
+title: "GỢI Ý TIỂU LUẬN"
+subtitle: "Đề tài Kết thúc Môn học & Quy chuẩn Báo cáo Khoa học Dữ liệu (AI-First)"
+author: "Lập trình Python cho Khoa học Dữ liệu"
+date: today
+lang: vi
+format:
+  pdf:
+    pdf-engine: xelatex
+    documentclass: report
+    papersize: a4
+    geometry:
+      - top=20mm
+      - bottom=20mm
+      - left=25mm
+      - right=20mm
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    colorlinks: true
+    linkcolor: blue
+    urlcolor: blue
+    include-in-header:
+      - text: |
+          \usepackage{fontspec}
+          \usepackage{amsmath}
+          \usepackage{amssymb}
+          \usepackage{booktabs}
+          \usepackage{microtype}
+  html:
+    toc: true
+    toc-depth: 3
+    theme: cosmo
+    number-sections: true
+---
+
+# LỜI MỞ ĐẦU
+
+Đồ án tiểu luận kết thúc môn học **Lập trình Python cho Khoa học Dữ liệu** là cơ hội để sinh viên khối ngành Kinh tế vận dụng toàn diện kiến thức đã học trong suốt 10 Session — từ tư duy lập trình Python, kỹ thuật xử lý và ghép nối dữ liệu lớn với NumPy, Pandas, trực quan hóa với Matplotlib/Seaborn, đến xây dựng các mô hình Machine Learning căn bản với Scikit-learn và kiểm định thống kê với SciPy/Statsmodels.
+
+Tài liệu này cung cấp:
+
+1. **Quy định Bắt buộc về Dữ liệu lớn ($\ge 100,000$ quan sát) và Xử lý Đa tệp (Multi-file).**
+2. **Quy chuẩn Pipeline Khoa học Dữ liệu chuẩn mực** theo tiến trình CRISP-DM.
+3. **Quy chuẩn Cấu trúc & Định dạng bài Tiểu luận Báo cáo** học thuật chuẩn APA 7th.
+4. **Phương pháp Đánh giá, Quy trình Chấm điểm 3 Vòng & Barem Rubric Chi tiết** (Trọng số 40%).
+5. **Danh mục Chi tiết 42 Đề tài Dữ liệu Lớn Thực tế** thuộc 6 phân khúc chuyên ngành Kinh tế – Kinh doanh (kèm nhóm Mở rộng).
+6. **Bảng Tổng hợp Ma trận 42 Đề tài Dữ liệu Lớn.**
+7. **Hướng dẫn Ứng dụng Antigravity IDE & Triết lý Vibe Coding** theo mô hình Sư phạm Đảo ngược (P-D-M-V) kèm Mẫu tệp `nhật ký làm việc.md`.
+
+---
+
+# PHẦN 1: QUY ĐỊNH BẮT BUỘC VỀ DỮ LIỆU, CỠ MẪU VÀ NHẬT KÝ LÀM VIỆC
+
+Nhằm đảm bảo sinh viên rèn luyện trọn vẹn năng lực xử lý dữ liệu lớn trong thực tế doanh nghiệp và duy trì tính minh bạch học thuật khi ứng dụng AI, các đề tài đồ án bắt buộc phải tuân thủ nghiêm ngặt các tiêu chuẩn sau:
+
+```
+[Quy mô Dữ liệu: ≥ 100,000 Quan sát (Rows)]
+                   +
+[Cấu trúc Đa tệp: Quan hệ Khóa chính - Khóa ngoại (Relational / Multi-file)]
+                   +
+[Kỹ thuật Tối ưu Bộ nhớ: Dtype Optimization / Chunking / Parquet]
+                   +
+[Minh chứng Học thuật: Tệp nhật ký làm việc.md (Session Worklog Manager)]
+```
+
+---
+
+## 1. Yêu cầu Cỡ mẫu Tối thiểu ($\ge 100,000$ Quan sát)
+
+- **Quy mô mẫu chuẩn:** Mọi đề tài tiểu luận bắt buộc phải sử dụng tập dữ liệu có **tối thiểu 100,000 quan sát (rows/records)**. Các đề tài có cỡ mẫu dưới 100k dòng sẽ bị trừ điểm trực tiếp ở tiêu chí Dữ liệu.
+- **Tính đại diện và Đa dạng:** Tập dữ liệu phải phản ánh đầy đủ tính biến thiên thực tế của thị trường, bao gồm cả nhiễu (noise), giá trị khuyết (missing), ngoại lai (outliers) và sự mất cân bằng giữa các nhóm (class imbalance).
+
+---
+
+## 2. Cấu trúc Dữ liệu Đa tệp (Multi-file & Relational Tables)
+
+- **Chấp nhận và Khuyến khích Dữ liệu Đa tệp:** Dữ liệu có thể được phân tán trên nhiều tệp tin (`.csv`, `.xlsx`, `.json`, `.parquet`, `.sqlite`), ví dụ:
+  - Tệp bảng giao dịch (`transactions.csv` hoặc `orders.csv`): Hàng trăm ngàn đến hàng triệu dòng.
+  - Tệp thông tin khách hàng (`customers.csv`).
+  - Tệp danh mục sản phẩm/dịch vụ (`products.csv`).
+  - Tệp địa điểm/chi nhánh/kho hàng (`stores.csv` hoặc `locations.csv`).
+  - Tệp nhật ký theo dõi thời gian (`tracking_logs.csv` hoặc `calendar.csv`).
+- **Năng lực Ghép nối Dữ liệu (Data Integration):** Sinh viên bắt buộc phải vận dụng thành thạo các kỹ thuật kết hợp bảng dữ liệu của Pandas:
+  - `pd.merge()`: Nối bảng theo khóa chính/khóa ngoại (Inner, Left, Right, Outer Join).
+  - `pd.concat()`: Ghép nối dữ liệu chuỗi thời gian hoặc dữ liệu nhiều năm/tháng theo chiều dọc (Row-wise) hoặc chiều ngang (Column-wise).
+  - `pd.DataFrame.join()`: Nối bảng dựa trên chỉ mục (Index-based join).
+
+---
+
+## 3. Kỹ thuật Quản lý và Tối ưu hóa Bộ nhớ (Memory Optimization)
+
+Khi làm việc với các tập dữ liệu từ 100k đến hàng triệu dòng, sinh viên cần áp dụng các kỹ thuật lập trình Python tối ưu:
+
+- **Ép kiểu dữ liệu tiết kiệm dung lượng (Downcasting):**
+  - Chuyển các cột văn bản có số lượng giá trị lặp lại hữu hạn sang kiểu `category` (giúp giảm tới 80% RAM).
+  - Chuyển `float64` sang `float32`, `int64` sang `int32` hoặc `int16` nếu miền giá trị cho phép.
+- **Đọc dữ liệu theo phân đoạn (`chunksize`):** Sử dụng tham số `chunksize` trong `pd.read_csv()` khi nạp các file vượt quá dung lượng RAM.
+- **Chuyển đổi sang định dạng nhị phân tối ưu:** Lưu trữ dữ liệu trung gian dưới dạng `Parquet` (`df.to_parquet()`) hoặc `Feather` để tăng tốc độ đọc/ghi gấp 5–10 lần so với CSV truyền thống.
+
+---
+
+## 4. Quy định Bắt buộc về Tệp Nhật ký Làm việc (`nhật ký làm việc.md`)
+
+- **Bắt buộc khởi tạo và duy trì tệp `nhật ký làm việc.md`:** Mỗi nhóm sinh viên bắt buộc phải có một tệp `nhật ký làm việc.md` đặt tại thư mục gốc của project/workspace theo đúng chuẩn kỹ năng **Session Worklog Manager**.
+- **Mục đích:** Lưu lại lịch sử tư duy, chuỗi prompt, các lần refactor code, phát hiện và sửa lỗi (Bug Hunting), trải nghiệm làm hỏng code (Mutate & Break) và các quyết định kiến trúc qua từng phiên làm việc (Session).
+- **Nguyên tắc ghi nhật ký:**
+  1. *Vị trí và tên tệp:* Bắt buộc là `./nhật ký làm việc.md` tại thư mục gốc.
+  2. *Thứ tự thời gian đảo ngược:* Phiên làm việc mới nhất **luôn luôn được chèn lên trên cùng** (ngay dưới phần Header).
+  3. *Nội dung ghi chép tối thiểu mỗi phiên:*
+     - Thời gian ghi nhận (`[YYYY-MM-DD HH:MM]`).
+     - Mục tiêu phiên (Task/Milestone cụ thể).
+     - Nội dung đã hoàn thành kèm link các tệp code/dữ liệu tương ứng.
+     - Quyết định kỹ thuật / Prompt chiến lược đã tương tác với Antigravity IDE.
+     - Tồn đọng & Bước tiếp theo cho phiên kế tiếp.
+- **Tính chất bắt buộc trong nghiệm thu:** Tệp `nhật ký làm việc.md` là minh chứng khoa học cho việc tự tay thực hiện đồ án (Anti-cheating / AI-Auditability). Nhóm không có tệp này hoặc chỉ tạo đối phó 1 lần duy nhất sẽ bị đánh giá **Không đạt** ở tiêu chí Quản trị mã nguồn & Đạo đức AI.
+
+---
+
+# PHẦN 2: QUY CHUẨN THỰC HIỆN DỰ ÁN (DATA SCIENCE PIPELINE CHUẨN)
+
+Một dự án Khoa học Dữ liệu trong kinh tế – kinh doanh là **quy trình giải quyết bài toán kinh doanh dựa trên bằng chứng dữ liệu (Data-driven Decision Making)** theo chuẩn mực quốc tế **CRISP-DM**. Đồ án bắt buộc phải trải qua 7 giai đoạn cốt lõi:
+
+```
+[1. Business Understanding]
+           ↓
+[2. Data Acquisition & Multi-file Integration]
+           ↓
+[3. Data Cleaning & Preprocessing]
+           ↓
+[4. Exploratory Data Analysis (EDA)]
+           ↓
+[5. Feature Engineering & Preprocessing]
+           ↓
+[6. Statistical Modeling & Machine Learning]
+           ↓
+[7. Evaluation & Business Recommendations]
+```
+
+---
+
+## 1. Giai đoạn 1: Hiểu bài toán và Xác lập mục tiêu kinh doanh (Business Understanding)
+
+- **Xác định bối cảnh kinh tế & Nỗi đau doanh nghiệp (Business Pain Points):** Nêu rõ tại sao vấn đề này lại quan trọng đối với tổ chức hoặc nền kinh tế.
+- **Xác định mục tiêu nghiên cứu (SMART Goals):** Mục tiêu phải cụ thể, đo lường được, khả thi và gắn liền với thời gian.
+- **Đặt câu hỏi nghiên cứu (Research Questions):** Đặt ra 3–5 câu hỏi cốt lõi mà dữ liệu cần trả lời.
+- **Xác định biến mục tiêu (Target Variable - $Y$) và các biến giải thích (Features - $X$):** Làm rõ bản chất bài toán là Hồi quy (Regression), Phân loại (Classification) hay Phân cụm không giám sát (Clustering).
+
+---
+
+## 2. Giai đoạn 2: Thu thập và Ghép nối dữ liệu đa tệp (Data Acquisition & Integration)
+
+- **Nguồn gốc dữ liệu:** Sử dụng các tập dữ liệu thứ cấp mở quy mô lớn (Kaggle, World Bank, Yahoo Finance, GSO, UCI Machine Learning Repository, Open Data Portals).
+- **Nạp và hợp nhất bảng dữ liệu:** Kết hợp các tệp độc lập thành một **Bảng Phân tích Tổng thể (Analytical Master Table)** duy nhất với $\ge 100,000$ dòng bằng `pd.merge()` hoặc `pd.concat()`.
+- **Khám phá cấu trúc sơ bộ:**
+  - Kích thước tập dữ liệu sau ghép nối (`df.shape`): Số lượng dòng và số lượng cột.
+  - Kiểm tra mức tiêu thụ bộ nhớ (`df.info(memory_usage='deep')`).
+  - Thống kê 5 con số cơ bản đối với biến định lượng (`df.describe()`) và phân phối tần số đối với biến định tính.
+
+---
+
+## 3. Giai đoạn 3: Tiền xử lý và Làm sạch dữ liệu (Data Cleaning & Preprocessing)
+
+- **Xử lý giá trị khuyết (Missing Values):**
+  - Xác định tỷ lệ khuyết trên từng cột (`df.isna().mean() * 100`).
+  - Lựa chọn phương án xử lý có lập luận: Xóa bỏ dòng/cột nếu tỷ lệ khuyết quá lớn, điền giá trị trung bình/trung vị đối với biến số có phân phối lệch, điền mode hoặc tạo nhãn riêng (`Unknown`) cho biến phân loại.
+- **Xử lý dữ liệu trùng lặp (Duplicate Records):** Phát hiện và loại bỏ các bản ghi trùng lặp phi lý bằng `.drop_duplicates()`.
+- **Ép kiểu dữ liệu (Data Type Casting):** Chuyển đổi chính xác kiểu số thực, số nguyên, kiểu phân loại (`category`), kiểu chuỗi (`str`) và định dạng chuỗi thời gian (`pd.to_datetime`).
+- **Phát hiện và xử lý ngoại lai (Outliers):**
+  - Nhận diện trực quan qua Box plot hoặc tính toán khoảng tứ phân vị $IQR = Q_3 - Q_1$ ($[Q_1 - 1.5 \times IQR, Q_3 + 1.5 \times IQR]$) hoặc Z-Score.
+  - Đưa ra quyết định giữ lại, cắt tỉa (Trimming) hay biến đổi (Log transformation / Winsorization) phù hợp với bản chất kinh tế.
+
+---
+
+## 4. Giai đoạn 4: Phân tích Khám phá Dữ liệu và Kể chuyện (EDA & Data Storytelling)
+
+- **Phân tích đơn biến (Univariate Analysis):** Sử dụng Histogram, KDE plot, Bar chart để quan sát hình dạng phân phối, độ lệch (Skewness) và độ nhọn (Kurtosis).
+- **Phân tích hai biến và đa biến (Bivariate & Multivariate Analysis):**
+  - Khảo sát mối tương quan giữa các biến định lượng qua Heatmap ma trận tương quan Pearson/Spearman (`df.corr()`).
+  - Đánh giá sự khác biệt giữa các nhóm qua Box plot, Violin plot hoặc Pair plot với `seaborn`.
+- **Tổng hợp dữ liệu nghiệp vụ:** Vận dụng linh hoạt các phương thức `groupby()`, `pivot_table()`, `crosstab()` để bóc tách các chỉ số hiệu quả kinh doanh.
+- **Đúc kết Insight:** Trình bày tối thiểu 3–5 phát hiện định lượng sâu sắc, giải thích cơ chế kinh tế đằng sau các con số.
+
+---
+
+## 5. Giai đoạn 5: Kỹ thuật tạo đặc trưng (Feature Engineering & Pipeline Preparation)
+
+- **Biến đổi và tạo biến mới (Feature Creation):** Tạo các chỉ số tài chính, tỷ lệ tăng trưởng, khoảng thời gian nắm giữ, nhóm tuổi hoặc phân cấp khách hàng.
+- **Mã hóa biến định tính (Categorical Encoding):**
+  - Biến danh nghĩa (Nominal): Áp dụng `OneHotEncoder` (tránh bẫy biến giả - Dummy Variable Trap).
+  - Biến thứ bậc (Ordinal): Áp dụng `OrdinalEncoder` hoặc ánh xạ thứ tự thủ công (Mapping).
+- **Chuẩn hóa thang đo (Feature Scaling):** Áp dụng `StandardScaler` (Z-score) hoặc `MinMaxScaler` trên tập dữ liệu huấn luyện.
+- **Phân chia tập dữ liệu (Train / Test Split):**
+  - Tách tập dữ liệu thành tập Huấn luyện (Train Set: 70–80%) và tập Kiểm tra (Test Set: 20–30%).
+  - Thiết lập `random_state` cố định để đảm bảo tính tái lập (Reproducibility).
+  - Sử dụng tham số `stratify` đối với các bài toán phân loại có dữ liệu mất cân bằng.
+
+---
+
+## 6. Giai đoạn 6: Mô hình hóa Thống kê & Học máy (Statistical Modeling & Machine Learning)
+
+- **Kiểm định giả thuyết thống kê (SciPy / Statsmodels):** Thực hiện kiểm định $t$-test (so sánh 2 trung bình nhóm), ANOVA (so sánh nhiều nhóm), hoặc Chi-Square (độc lập định tính) để kiểm chứng các giả thiết nghiên cứu.
+- **Huấn luyện mô hình Machine Learning với Scikit-learn:**
+  - *Bài toán Hồi quy:* Hồi quy tuyến tính (OLS), Hồi quy Ridge, Hồi quy Lasso, Decision Tree Regressor, Random Forest Regressor.
+  - *Bài toán Phân loại:* Hồi quy Logistic, Decision Tree Classifier, Random Forest Classifier, Support Vector Classifier (SVC).
+  - *Bài toán Phân cụm:* Phân tích cụm $K$-Means kết hợp phương pháp Elbow Method và Silhouette Score.
+- **Đóng gói Pipeline:** Ứng dụng `Pipeline` và `ColumnTransformer` của Scikit-learn để tự động hóa toàn bộ quy trình tiền xử lý và mô hình hóa, triệt tiêu nguy cơ rò rỉ dữ liệu (Data Leakage).
+
+---
+
+## 7. Giai đoạn 7: Đánh giá mô hình & Đề xuất Giải pháp Quản trị (Evaluation & Recommendations)
+
+- **Đánh giá hiệu năng định lượng:**
+  - *Bài toán Hồi quy:* Hệ số xác định $R^2$, Sai số toàn phương trung bình gốc (RMSE), Sai số tuyệt đối trung bình (MAE), Sai số phần trăm tuyệt đối trung bình (MAPE).
+  - *Bài toán Phân loại:* Accuracy, Precision, Recall, F1-Score, Diện tích dưới đường cong ROC-AUC, Ma trận nhầm lẫn (Confusion Matrix).
+- **Giải thích mô hình (Model Interpretability):** Đánh giá mức độ quan trọng của từng đặc trưng (Feature Importance hoặc Regression Coefficients) để chỉ rõ nhân tố nào chi phối mạnh nhất đến kết quả.
+- **Khuyến nghị Chiến lược Quản trị (Actionable Recommendations):** Chuyển hóa kết quả mô hình thành các giải pháp kinh doanh thực tế, khả thi cho nhà quản trị.
+- **Giới hạn nghiên cứu & Đạo đức dữ liệu:** Nêu rõ các ranh giới của bộ dữ liệu, nguy cơ thiên vị thuật toán (Algorithm Bias) và trách nhiệm bảo vệ dữ liệu người dùng.
+
+---
+
+# PHẦN 3: QUY CHUẨN ĐỊNH DẠNG VÀ CẤU TRÚC BÀI TIỂU LUẬN BÁO CÁO
+
+---
+
+## 1. Quy chuẩn Hình thức và Trình bày (Formatting Standard)
+
+- **Hồ sơ nộp bài nghiệm thu gồm:**
+  1. 01 file Báo cáo Tiểu luận PDF hoàn chỉnh (`MSSV_NhomXX_TieuLuan.pdf`).
+  2. 01 Thư mục Workspace Antigravity IDE hoàn chỉnh (chứa mã nguồn Python, dữ liệu mẫu, và **bắt buộc có tệp `nhật ký làm việc.md`**).
+- **Khổ giấy:** A4 (210 mm $\times$ 297 mm), in dọc.
+- **Canh lề tiêu chuẩn:** Lề trên 2.0 cm, lề dưới 2.0 cm, lề trái 3.0 cm (đóng gáy), lề phải 2.0 cm.
+- **Phông chữ & Cỡ chữ:**
+  - Phông chữ: *Times New Roman* hoặc *Calibri*.
+  - Cỡ chữ nội dung: 12pt – 13pt; khoảng cách dòng (Line spacing): 1.3 – 1.5 lines.
+  - Khoảng cách đoạn (Spacing): Before 0pt, After 6pt.
+- **Quy chuẩn Đánh số Bảng biểu và Hình ảnh:**
+  - Mọi bảng biểu phải có số thứ tự và tên bảng đặt **ngay phía trên** bảng (Ví dụ: *Bảng 3.2: Thống kê mô tả các chỉ số tài chính*), bên dưới bảng phải ghi rõ nguồn trích dẫn dữ liệu.
+  - Mọi hình ảnh/đồ thị phải có số thứ tự và tên hình đặt **ngay phía dưới** hình (Ví dụ: *Hình 4.1: Ma trận nhầm lẫn của mô hình Random Forest*).
+- **Trích dẫn tài liệu tham khảo:** Tuân thủ chặt chẽ định dạng chuẩn **APA 7th Edition**.
+
+---
+
+## 2. Khung Cấu trúc Chi tiết của Bài Tiểu luận
+
+```text
+TRANG BÌA CHÍNH (Theo mẫu chuẩn của Trường / Khoa)
+TRANG LỜI CAM ĐOAN & LỜI CẢM ƠN
+MỤC LỤC TỰ ĐỘNG
+DANH MỤC CHỮ VIẾT TẮT
+DANH MỤC BẢNG BIỂU
+DANH MỤC HÌNH VẼ / BIỂU ĐỒ
+TÓM TẮT ĐỒ ÁN (EXECUTIVE SUMMARY - 250 đến 350 từ)
+
+CHƯƠNG 1: TỔNG QUAN ĐỀ TÀI VÀ MỤC TIÊU NGHIÊN CỨU
+  1.1. Bối cảnh nghiên cứu và Lý do chọn đề tài
+  1.2. Xác định vấn đề và Câu hỏi nghiên cứu
+  1.3. Mục tiêu nghiên cứu (Tổng quát và Cụ thể)
+  1.4. Đối tượng và Phạm vi nghiên cứu
+  1.5. Ý nghĩa lý luận và Thực tiễn của đề tài
+
+CHƯƠNG 2: CƠ SỞ LÝ THUYẾT VÀ PHƯƠNG PHÁP NGHIÊN CỨU
+  2.1. Cơ sở lý thuyết chuyên ngành liên quan
+  2.2. Tổng quan các nghiên cứu thực nghiệm trước đây
+  2.3. Quy trình nghiên cứu dữ liệu (Data Science Workflow)
+  2.4. Các phương pháp thống kê và Thuật toán Học máy ứng dụng
+  2.5. Môi trường thực nghiệm và Công cụ lập trình Python
+
+CHƯƠNG 3: THU THẬP, GHÉP NỐI VÀ PHÂN TÍCH KHÁM PHÁ DỮ LIỆU (EDA)
+  3.1. Mô tả nguồn gốc và Cấu trúc tập dữ liệu đa tệp (Multi-file)
+  3.2. Quy trình ghép nối bảng dữ liệu (Merge / Concat) và Tối ưu bộ nhớ
+  3.3. Quy trình làm sạch và Xử lý dữ liệu khuyết / ngoại lai
+  3.4. Phân tích thống kê mô tả
+  3.5. Trực quan hóa dữ liệu và Phát hiện Insight kinh doanh
+  3.6. Kiểm định giả thuyết thống kê sơ bộ
+
+CHƯƠNG 4: XÂY DỰNG MÔ HÌNH VÀ ĐÁNH GIÁ HIỆU NĂNG
+  4.1. Kỹ thuật tạo lập và Lựa chọn đặc trưng (Feature Engineering)
+  4.2. Chuẩn hóa và Phân chia tập dữ liệu huấn luyện / kiểm tra
+  4.3. Huấn luyện các mô hình Machine Learning
+  4.4. So sánh hiệu năng mô hình qua các chỉ số đo lường
+  4.5. Phân tích độ quan trọng của đặc trưng và Diễn giải mô hình
+  4.6. Thảo luận kết quả thực nghiệm
+
+CHƯƠNG 5: KHUYẾN NGHỊ QUẢN TRỊ VÀ KẾT LUẬN
+  5.1. Đề xuất giải pháp và Chiến lược kinh doanh cho doanh nghiệp
+  5.2. Lộ trình triển khai ứng dụng thực tế
+  5.3. Hạn chế của nghiên cứu và Đạo đức dữ liệu
+  5.4. Hướng phát triển trong tương lai
+
+TÀI LIỆU THAM KHẢO (Chuẩn APA 7th)
+PHỤ LỤC:
+  - Phụ lục A: Toàn văn Mã nguồn Python sạch theo chuẩn PEP 8
+  - Phụ lục B: Nhật ký Làm việc với Antigravity IDE (Trích xuất từ tệp nhật ký làm việc.md)
+```
+
+---
+
+# PHẦN 4: PHƯƠNG PHÁP ĐÁNH GIÁ, QUY TRÌNH CHẤM ĐIỂM VÀ BAREM CHI TIẾT
+
+Đồ án Capstone chiếm **trọng số 40%** tổng điểm học phần (thang điểm 10.0). Nhằm đánh giá chính xác năng lực thực chiến, tư duy giải quyết vấn đề và mức độ am hiểu mã nguồn thực tế của sinh viên trong kỷ nguyên AI-First, phương pháp đánh giá được thiết kế đa chiều theo mô hình kết hợp **Đánh giá Sản phẩm** và **Thẩm định Năng lực Trực tiếp**.
+
+---
+
+## 1. Cấu trúc Mô hình Đánh giá 2 Hợp phần (10.0 Điểm)
+
+```
+[TỔNG ĐIỂM ĐỒ ÁN CAPSTONE: 10.0 ĐIỂM (100%)]
+                        │
+       ┌────────────────┴────────────────┐
+       ▼                                 ▼
+[HỢP PHẦN 1: 60% (6.0 Điểm)]    [HỢP PHẦN 2: 40% (4.0 Điểm)]
+Đánh giá Sản phẩm Đồ án         Bảo vệ & Vấn đáp Trực tiếp
+(Báo cáo Tiểu luận & Mã nguồn)  (Live Defense & AI-Auditing)
+```
+
+- **Hợp phần 1: Đánh giá Sản phẩm Đồ án (6.0 điểm - 60%):** Chấm thẩm định Báo cáo Tiểu luận PDF, toàn bộ Workspace Antigravity IDE, chất lượng mã nguồn Python và tệp `nhật ký làm việc.md`.
+- **Hợp phần 2: Bảo vệ Đồ án & Vấn đáp Trực tiếp (4.0 điểm - 40%):** Thuyết trình 7 phút, Live Demo chạy Pipeline trên Antigravity IDE, vấn đáp cá nhân (Code Reading / Tracing) và thử nghiệm Mutate & Break trực tiếp.
+
+---
+
+## 2. Quy trình Chấm điểm 3 Vòng Chặt chẽ
+
+```
+[VÒNG 1: Sơ loại Điều kiện Tiên quyết (Gatekeeper Check)]
+                           ↓
+[VÒNG 2: Thẩm định Chi tiết Báo cáo & Mã nguồn (Offline Review)]
+                           ↓
+[VÒNG 3: Vấn đáp Trực tiếp & Phân hóa Điểm Cá nhân (Live Defense)]
+```
+
+### Vòng 1: Sơ loại Điều kiện Tiên quyết (Gatekeeper Check)
+Trước khi chấm chi tiết, Hội đồng kiểm tra 3 điều kiện tiên quyết:
+
+1. **Quy mô dữ liệu:** Đạt tối thiểu $100,000$ quan sát (Rows) sau khi hợp nhất.
+2. **Minh chứng nhật ký:** Có tệp `nhật ký làm việc.md` tại thư mục gốc ghi nhận tiến trình làm việc tối thiểu 4–6 phiên độc lập.
+3. **Tính khả thi của mã nguồn:** Pipeline Python chạy thông suốt từ đầu đến cuối không phát sinh lỗi cú pháp hay lỗi đường dẫn cứng (`C:/Users/...`).
+
+*(Nếu vi phạm 1 trong 3 điều kiện trên, nhóm bị trừ ngay 50% tổng điểm Hợp phần 1 hoặc bị yêu cầu hoàn thiện lại trong 24 giờ).*
+
+### Vòng 2: Thẩm định Chi tiết Báo cáo & Mã nguồn (Offline Review)
+Hội đồng đánh giá độc lập theo Barem Rubric 5 Trụ cột (Mục 4.3) dựa trên toàn bộ tài liệu và mã nguồn đã nộp.
+
+### Vòng 3: Vấn đáp Trực tiếp & Phân hóa Điểm Cá nhân (Live Defense & Smart Cold-Calling)
+- Mỗi nhóm có đúng **10 phút** (7 phút thuyết trình + 3 phút vấn đáp).
+- Hội đồng chỉ định ngẫu nhiên thành viên trả lời các câu hỏi bóc tách code (*"Dòng lệnh số 45 trong file `preprocessor.py` làm nhiệm vụ gì?", "Tại sao em dùng `OneHotEncoder` mà không dùng `LabelEncoder`?", "Hãy thử thay đổi tham số `test_size=0.3` sang `0.4` và chạy lại mô hình ngay trên IDE"*).
+
+---
+
+## 3. Barem Rubric Chấm điểm Chi tiết (Thang điểm 10.0)
+
+| STT | Trụ Cột Đánh Giá | Tỷ Trọng | Mức Kém (< 50%) | Mức Trung Bình (50–69%) | Mức Khá (70–89%) | Mức Xuất Sắc (90–100%) |
+|:---:|---|:---:|---|---|---|---|
+| **I** | **Xác định Vấn đề & Dữ liệu Lớn** | **1.5 điểm** (15%) | Mục tiêu mơ hồ; dữ liệu < 50k dòng; không có liên kết bảng; không tối ưu RAM. | Mục tiêu chung chung; dữ liệu 50k–100k dòng; liên kết bảng còn lỗi; chưa tối ưu bộ nhớ. | Mục tiêu rõ ràng; dữ liệu $\ge 100k$ dòng; ghép bảng `merge` đúng; có ép kiểu `category`. | Mục tiêu SMART xuất sắc; dữ liệu $\ge 100k$ đa bảng phức tạp; tối ưu hóa RAM triệt để (`chunksize`, Parquet). |
+| **II** | **Làm sạch & Khám phá Dữ liệu (EDA)** | **2.5 điểm** (25%) | Bỏ qua bước làm sạch; biểu đồ sơ sài; không rút ra được Insight nào. | Xử lý Missing/Outlier máy móc; biểu đồ đơn điệu; Insight mang tính mô tả lại số liệu. | Làm sạch dữ liệu khoa học; biểu đồ Seaborn trực quan, đúng chuẩn; rút ra 2–3 Insight có giá trị kinh tế. | Làm sạch bài bản; Storytelling with Data xuất sắc; Dashboard 300 DPI / Plotly tương tác; 4–5 Insight định lượng sâu sắc. |
+| **III** | **Mô hình hóa ML & Đánh giá Hiệu năng** | **2.5 điểm** (25%) | Chọn sai thuật toán; rò rỉ dữ liệu (Data Leakage); đánh giá sai chỉ số. | Áp dụng mô hình cơ bản nhưng chưa chuẩn hóa biến; chỉ số đánh giá sơ sài (chỉ xem Accuracy). | Xây dựng Pipeline chuẩn Scikit-learn; không rò rỉ dữ liệu; so sánh 2–3 mô hình qua đầy đủ metrics. | Pipeline Scikit-learn đóng gói hoàn hảo; kiểm định giả thuyết thống kê sâu sắc; phân tích Feature Importance thuyết phục. |
+| **IV** | **Khuyến nghị Quản trị & Thực tiễn** | **2.0 điểm** (20%) | Không có khuyến nghị hoặc khuyến nghị chung chung không liên quan đến dữ liệu. | Đề xuất mang tính cảm tính, thiếu căn cứ từ kết quả mô hình; chưa nhận diện giới hạn. | Đề xuất khả thi, bám sát các phát hiện từ EDA và mô hình; nêu rõ giới hạn nghiên cứu. | Đề xuất chiến lược sắc bén, có lộ trình triển khai chi tiết cho doanh nghiệp; phân tích đạo đức AI và bảo mật dữ liệu. |
+| **V** | **Hình thức Báo cáo, Code & Nhật ký AI** | **1.5 điểm** (15%) | Báo cáo sai quy cách; code bẩn không comment; **không có tệp nhật ký làm việc**. | Trình bày tạm ổn; code thiếu module hóa; nhật ký làm việc ghi chép sơ sài (1–2 phiên). | Trình bày đúng chuẩn APA 7th; Code sạch PEP 8; tệp `nhật ký làm việc.md` ghi chép 3–4 phiên rõ ràng. | Báo cáo xuất sắc chuẩn học thuật; Code module hóa đẹp, PEP 8 tuyệt đối; tệp `nhật ký làm việc.md` lưu vết hoàn hảo theo chuẩn P-D-M-V. |
+
+---
+
+## 4. Cơ chế Phân bổ Điểm số Cá nhân trong Nhóm
+
+Điểm số cuối cùng của từng sinh viên ($S_i$) trong nhóm $N$ thành viên được tính dựa trên Điểm Báo cáo chung của Nhóm ($G$), Hệ số Đóng góp Cá nhân ($\alpha_i$), và Điểm Vấn đáp Cá nhân trực tiếp ($V_i$):
+
+$$\text{Điểm Cá Nhân } (S_i) = \left( G \times 0.6 \times \alpha_i \right) + \left( V_i \times 0.4 \right)$$
+
+*Trong đó:*
+- $G$: Điểm tổng thể Báo cáo & Mã nguồn của Nhóm (Thang điểm 10.0).
+- $\alpha_i$: Hệ số Đóng góp Cá nhân do các thành viên trong nhóm tự đánh giá và được Hội đồng thẩm định qua tệp `nhật ký làm việc.md` ($\sum \alpha_i = N$, $\alpha_i \in [0.7, 1.2]$).
+- $V_i$: Điểm Vấn đáp Cá nhân trực tiếp tại phiên bảo vệ (Thang điểm 10.0).
+
+---
+
+## 5. Quy chế Thẩm định Chống Gian lận AI (AI-Auditing Protocol)
+
+1. **Nguyên tắc Trách nhiệm Giải trình (Human-in-the-Loop):** Sinh viên được quyền sử dụng AI để hỗ trợ viết mã và sửa lỗi, nhưng **bắt buộc phải hiểu và giải thích được 100% từng dòng lệnh trong đồ án**.
+2. **Quy tắc Bắt bài Logic (Live Code Tracing):** Nếu tại phiên bảo vệ, sinh viên không giải thích được cơ chế hoạt động của đoạn code do AI viết, sinh viên đó sẽ nhận **0.0 điểm cho phần Vấn đáp Cá nhân** của đoạn code đó.
+3. **Quy tắc Kiểm tra Tính Xác thực của Nhật ký:** Hội đồng sẽ đối chiếu các mô tả trong tệp `nhật ký làm việc.md` với lịch sử thay đổi file trên IDE. Mọi hành vi làm giả nhật ký hoặc sao chép nguyên văn đồ án của nhóm khác sẽ bị xử lý theo Quy chế Kỷ luật Học thuật của Nhà trường.
+
+---
+
+# PHẦN 5: DANH MỤC 42 ĐỀ TÀI TIỂU LUẬN DỮ LIỆU LỚN ($\ge 100,000$ QUAN SÁT)
+
+---
+
+## NHÓM I: TÀI CHÍNH, NGÂN HÀNG & BẢO HIỂM
+
+### Đề tài PRJ-01: Phân tích và Dự báo Rủi ro Vỡ nợ Tín dụng Cá nhân (Credit Risk / Loan Default Prediction)
+- **Chuyên ngành:** Tài chính – Ngân hàng.
+- **Nguồn dữ liệu:** *Home Credit Default Risk Dataset (Kaggle)* hoặc *Lending Club Loan Data*.
+- **Quy mô mẫu & Cấu trúc:** **307,511 quan sát** chính tại `application_train.csv`, liên kết với 6 bảng phụ (`bureau.csv`, `previous_application.csv`, `POS_CASH_balance.csv`, `installments_payments.csv`, `credit_card_balance.csv`). Tổng quy mô toàn bộ hệ thống dữ liệu vượt trên 10 triệu bản ghi.
+- **Mục tiêu nghiên cứu:** Xây dựng mô hình phân loại nhị phân dự báo khả năng vỡ nợ của khách hàng vay tiêu dùng dựa trên lịch sử giao dịch và tín dụng.
+- **Kỹ thuật trọng tâm:** Ghép nối bảng đa cấp với `pd.merge()`, tổng hợp lịch sử thanh toán qua `groupby().agg()`, xử lý mất cân bằng dữ liệu, mô hình Logistic Regression và Random Forest Classifier.
+- **Ý nghĩa thực tiễn:** Giúp ngân hàng tự động hóa quy trình phê duyệt tín dụng, kiểm soát nợ xấu và tối ưu hóa biên lợi nhuận.
+
+### Đề tài PRJ-02: Dự báo Khách hàng Rời bỏ Dịch vụ Ngân hàng Bán lẻ (Bank Customer Churn Big Dataset)
+- **Chuyên ngành:** Tài chính Bán lẻ & Quản trị Quan hệ Khách hàng (CRM).
+- **Nguồn dữ liệu:** *Bank Customer Churn Prediction Competition Dataset (Kaggle)*.
+- **Quy mô mẫu & Cấu trúc:** **165,034 quan sát** độc lập với 14 đặc trưng tài chính, điểm tín dụng, số dư tài khoản và số lượng sản phẩm ngân hàng sử dụng.
+- **Mục tiêu nghiên cứu:** Nhận diện sớm các khách hàng có ý định đóng tài khoản hoặc ngừng giao dịch.
+- **Kỹ thuật trọng tâm:** Trực quan hóa Seaborn đa biến (Violin plot, Heatmap), `OneHotEncoder`, huấn luyện Random Forest Classifier, phân tích Feature Importance.
+- **Ý nghĩa thực tiễn:** Giúp ngân hàng chủ động triển khai các gói chăm sóc khách hàng cá nhân hóa để giữ chân khách hàng VIP và duy trì số dư tiền gửi.
+
+### Đề tài PRJ-03: Phát hiện Giao dịch Gian lận Thẻ Tín dụng trong Thời gian Thực (Credit Card Fraud Detection)
+- **Chuyên ngành:** Công nghệ Tài chính (FinTech) & Quản trị Rủi ro.
+- **Nguồn dữ liệu:** *Credit Card Fraud Detection Dataset (Kaggle)* hoặc *IEEE-CIS Fraud Detection*.
+- **Quy mô mẫu & Cấu trúc:** **284,807 giao dịch** thẻ tín dụng với 30 biến số (gồm các thành phần PCA $V_1$ đến $V_{28}$, thời gian và số tiền giao dịch).
+- **Mục tiêu nghiên cứu:** Phát hiện tức thời các giao dịch bất thường mang dấu hiệu gian lận tài chính với tỷ lệ gian lận cực thấp (492 giao dịch gian lận ~ 0.172%).
+- **Kỹ thuật trọng tâm:** Chuẩn hóa `StandardScaler`, kỹ thuật xử lý dữ liệu mất cân bằng nghiêm trọng (Class Weighting, Threshold Tuning), đánh giá qua Precision-Recall AUC và Confusion Matrix.
+- **Ý nghĩa thực tiễn:** Bảo vệ an toàn tài sản cho chủ thẻ và phòng chống thất thoát tài chính cho tổ chức tài chính phát hành.
+
+### Đề tài PRJ-04: Xây dựng Mô hình Dự báo Chi phí Bồi thường Bảo hiểm Y tế (Medical Insurance Claims & Cost Prediction)
+- **Chuyên ngành:** Bảo hiểm & Thẩm định Tài chính.
+- **Nguồn dữ liệu:** *US Health Insurance Marketplace / Synthesized CMS Claims Dataset (Kaggle / Data.gov)*.
+- **Quy mô mẫu & Cấu trúc:** **150,000+ hồ sơ yêu cầu bồi thường** bao gồm thông tin nhân khẩu học, tiền sử bệnh án, chỉ số BMI, phân vùng địa lý và mã chi phí bồi thường.
+- **Mục tiêu nghiên cứu:** Dự báo tổng số tiền bồi thường bảo hiểm hàng năm của từng nhóm khách hàng.
+- **Kỹ thuật trọng tâm:** Kiểm định giả thuyết $t$-test và ANOVA, xử lý phân phối lệch phải bằng hàm logarit (`np.log1p`), mô hình Hồi quy tuyến tính đa biến (OLS) và Lasso/Ridge Regression.
+- **Ý nghĩa thực tiễn:** Hỗ trợ doanh nghiệp bảo hiểm định giá gói phí bảo hiểm (Actuarial Pricing) chính xác và đảm bảo an toàn quỹ tài chính.
+
+### Đề tài PRJ-05: Phân tích Biến động và Dự báo Lợi suất Cổ phiếu Doanh nghiệp Niêm yết (High-Frequency Stock Data Analysis)
+- **Chuyên ngành:** Đầu tư Tài chính & Thị trường Chứng khoán.
+- **Nguồn dữ liệu:** *US Equities / VN30 Historical Stock Data tải qua `yfinance` hoặc Kaggle Daily/Minute Stocks*.
+- **Quy mô mẫu & Cấu trúc:** **200,000+ bản ghi chuỗi thời gian** (dữ liệu theo ngày của 500 cổ phiếu S&P 500 trong 5 năm hoặc dữ liệu theo phút của rổ chỉ số).
+- **Mục tiêu nghiên cứu:** Tính toán lợi suất danh mục, độ biến động lịch sử (Volatility), chỉ số Sharpe và xây dựng mô hình dự báo xu hướng lợi suất.
+- **Kỹ thuật trọng tâm:** Xử lý chuỗi thời gian Pandas (`resample`, `pct_change`, `rolling`), kiểm định tính dừng (Augmented Dickey-Fuller Test), mô hình hồi quy dự báo lợi suất.
+- **Ý nghĩa thực tiễn:** Cung cấp công cụ hỗ trợ ra quyết định phân bổ danh mục đầu tư và kiểm soát rủi ro thị trường.
+
+### Đề tài PRJ-06: Phân khúc Khách hàng Giao dịch Thẻ Tín dụng phục vụ Thiết kế Sản phẩm Tài chính (Credit Card Big Transaction Clustering)
+- **Chuyên ngành:** Ngân hàng Bán lẻ & Marketing Tài chính.
+- **Nguồn dữ liệu:** *Brazilian E-Commerce Financial Transactions / Credit Card Multi-Table Dataset (Kaggle)*.
+- **Quy mô mẫu & Cấu trúc:** **103,886 giao dịch thanh toán** trên 3 bảng liên kết (`order_payments.csv`, `orders.csv`, `customers.csv`).
+- **Mục tiêu nghiên cứu:** Phân nhóm khách hàng theo hành vi thanh toán (trả góp, hạn mức, số lần giao dịch, tổng chi tiêu).
+- **Kỹ thuật trọng tâm:** Ghép nối bảng đa chiều bằng `pd.merge()`, chuẩn hóa `StandardScaler`, thuật toán phân cụm không giám sát $K$-Means, xác định $K$ tối ưu bằng Elbow Method và Silhouette Score.
+- **Ý nghĩa thực tiễn:** Giúp ngân hàng thiết kế các gói thẻ tín dụng và chương trình ưu đãi tích điểm phù hợp với từng phân khúc khách hàng.
+
+---
+
+## NHÓM II: MARKETING, THƯƠNG MẠI ĐIỆN TỬ & BÁN LẺ
+
+### Đề tài PRJ-07: Dự báo Doanh số Bán lẻ Đa kênh theo Chuỗi Cửa hàng (Corporación Favorita / Walmart Big Retail Sales)
+- **Chuyên ngành:** Quản trị Bán lẻ & Quản trị Kinh doanh.
+- **Nguồn dữ liệu:** *Corporación Favorita Grocery Sales Forecasting* hoặc *Walmart Store Sales (Kaggle)*.
+- **Quy mô mẫu & Cấu trúc:** **500,000+ dòng giao dịch bán hàng** trên 4 bảng liên kết (`train.csv`, `stores.csv`, `items.csv`, `oil.csv`, `holidays_events.csv`).
+- **Mục tiêu nghiên cứu:** Dự báo doanh số bán hàng theo từng ngành hàng tại từng chi nhánh dựa trên chương trình khuyến mãi, giá dầu và ngày lễ.
+- **Kỹ thuật trọng tâm:** Tối ưu hóa bộ nhớ (`category` dtype), ghép nối đa tệp, trích xuất đặc trưng thời gian (`.dt`), mô hình hồi quy Random Forest Regressor, đo lường bằng RMSE/WMAE.
+- **Ý nghĩa thực tiễn:** Giúp giám đốc chuỗi bán lẻ tối ưu hóa việc phân bổ hàng hóa, tránh thừa thiếu tồn kho và dự toán doanh thu chính xác.
+
+### Đề tài PRJ-08: Phân tích Giỏ hàng và Luật Kết hợp Sản phẩm Quy mô Lớn (Instacart Market Basket Analysis)
+- **Chuyên ngành:** Thương mại Điện tử & Quản trị Bán hàng.
+- **Nguồn dữ liệu:** *Instacart Market Basket Analysis Dataset (Kaggle)*.
+- **Quy mô mẫu & Cấu trúc:** **1,000,000+ bản ghi sản phẩm trong đơn hàng** trên 5 bảng liên kết (`orders.csv`, `order_products__train.csv`, `products.csv`, `aisles.csv`, `departments.csv`).
+- **Mục tiêu nghiên cứu:** Phát hiện các quy luật mua sắm đồng thời của người tiêu dùng để xác định các cặp sản phẩm thường xuyên được mua cùng nhau.
+- **Kỹ thuật trọng tâm:** Ghép nối dữ liệu lớn, tạo ma trận giỏ hàng nhị phân (One-hot Transactional Matrix), thuật toán Apriori / FP-Growth, tính toán Support, Confidence và Lift.
+- **Ý nghĩa thực tiễn:** Tối ưu hóa thuật toán gợi ý sản phẩm mua kèm (Cross-selling / Up-selling) và sắp xếp giao diện ứng dụng mua sắm.
+
+### Đề tài PRJ-09: Khai phá Cảm xúc và Đánh giá Khách hàng trên Sàn TMĐT Quy mô Lớn (Big Amazon Product Reviews Sentiment Analysis)
+- **Chuyên ngành:** Marketing Số & Trải nghiệm Khách hàng (CX).
+- **Nguồn dữ liệu:** *Amazon Customer Reviews Dataset* hoặc *Yelp Open Dataset (Kaggle)*.
+- **Quy mô mẫu & Cấu trúc:** **200,000+ đánh giá văn bản** kèm điểm sao (Rating 1–5), thông tin sản phẩm và phân loại ngành hàng.
+- **Mục tiêu nghiên cứu:** Tự động phân loại cảm xúc của người tiêu dùng thành Tích cực (Positive) hoặc Tiêu cực (Negative).
+- **Kỹ thuật trọng tâm:** Tiền xử lý văn bản bằng Regular Expressions, trích xuất đặc trưng TF-IDF Vectorizer với `max_features=5000`, mô hình phân loại Logistic Regression và Naive Bayes.
+- **Ý nghĩa thực tiễn:** Giúp thương hiệu tự động theo dõi danh tiếng trực tuyến, phát hiện lỗi sản phẩm và chăm sóc khách hàng kịp thời.
+
+### Đề tài PRJ-10: Phân loại Khách hàng Toàn diện theo Mô hình RFM trên Sàn TMĐT (Olist E-Commerce Multi-table RFM Segmentation)
+- **Chuyên ngành:** Marketing Dữ liệu (Data-driven Marketing).
+- **Nguồn dữ liệu:** *Brazilian E-Commerce Public Dataset by Olist (Kaggle)*.
+- **Quy mô mẫu & Cấu trúc:** **100,000+ đơn hàng** phân tán trên 9 tệp tin CSV liên kết (`olist_orders_dataset.csv`, `olist_order_items_dataset.csv`, `olist_order_payments_dataset.csv`, `olist_customers_dataset.csv`, `olist_products_dataset.csv`, v.v.).
+- **Mục tiêu nghiên cứu:** Xây dựng hệ thống phân loại khách hàng dựa trên 3 chỉ số RFM (Recency, Frequency, Monetary) và hành vi đánh giá sản phẩm.
+- **Kỹ thuật trọng tâm:** Ghép nối 9 bảng dữ liệu quan hệ, nhóm dữ liệu với `groupby()`, chuẩn hóa dữ liệu, phân cụm $K$-Means và trực quan hóa phân bổ RFM.
+- **Ý nghĩa thực tiễn:** Tối ưu hóa chi phí tiếp thị số, tái kích hoạt khách hàng cũ và gia tăng giá trị trọn đời của khách hàng (CLV).
+
+### Đề tài PRJ-11: Dự báo Tỷ lệ Chuyển đổi và Nhấp chuột Quảng cáo Số (Digital Advertising Click-Through Rate & Conversion Prediction)
+- **Chuyên ngành:** Truyền thông Marketing Tích hợp (IMC) & Quảng cáo Số.
+- **Nguồn dữ liệu:** *Avazu CTR / Criteo Ad Conversion Dataset (Kaggle - mẫu 200k bản ghi)*.
+- **Quy mô mẫu & Cấu trúc:** **200,000+ lượt hiển thị quảng cáo** với các biến về vị trí banner, thiết bị người dùng, thời gian và chỉ báo nhấp chuột (Click/No-click).
+- **Mục tiêu nghiên cứu:** Dự báo xác suất người dùng sẽ nhấp chuột và chuyển đổi sau khi nhìn thấy quảng cáo trực tuyến.
+- **Kỹ thuật trọng tâm:** Mã hóa biến danh nghĩa quy mô lớn (Target Encoding / OneHot), mô hình Logistic Regression và Decision Tree, phân tích diện tích dưới đường cong ROC-AUC.
+- **Ý nghĩa thực tiễn:** Giúp các công ty quảng cáo tối ưu hóa giá thầu thời gian thực (Real-Time Bidding - RTB) và nâng cao ROI chiến dịch truyền thông.
+
+### Đề tài PRJ-12: Xây dựng Mô hình Định giá Ô tô Đã qua Sử dụng trên Thị trường Thứ cấp (Craigslist Used Cars Big Dataset)
+- **Chuyên ngành:** Định giá Sản phẩm & Kinh doanh Trực tuyến.
+- **Nguồn dữ liệu:** *Craigslist Used Cars Dataset (Kaggle)*.
+- **Quy mô mẫu & Cấu trúc:** **426,880 quan sát** xe ô tô đã qua sử dụng tại thị trường Mỹ với 26 biến số (thương hiệu, năm sản xuất, số dặm đã đi, hộp số, loại nhiên liệu, tình trạng thân vỏ, vị trí bang).
+- **Mục tiêu nghiên cứu:** Xây dựng mô hình định giá xe tự động chính xác dựa trên các đặc trưng kỹ thuật và ngoại quan.
+- **Kỹ thuật trọng tâm:** Làm sạch dữ liệu văn bản bẩn, lọc ngoại lai giá bán và số dặm bằng quy tắc IQR, One-Hot Encoding biến thương hiệu, mô hình Hồi quy Random Forest Regressor.
+- **Ý nghĩa thực tiễn:** Cung cấp công cụ định giá tự động cho các sàn thương mại C2C, hạn chế tình trạng bất cân xứng thông tin trên thị trường đồ cũ.
+
+---
+
+## NHÓM III: LOGISTICS, CHUỖI CUNG ỨNG & VẬN TẢI
+
+### Đề tài PRJ-13: Dự báo Rủi ro Giao hàng Chậm trễ trong Chuỗi Cung ứng Toàn cầu (DataCo Big Supply Chain Delivery Delay)
+- **Chuyên ngành:** Logistics & Quản trị Chuỗi Cung ứng.
+- **Nguồn dữ liệu:** *DataCo Smart Supply Chain for Big Data Analysis (Kaggle)*.
+- **Quy mô mẫu & Cấu trúc:** **180,519 đơn hàng vận chuyển quốc tế** với 53 trường dữ liệu chi tiết về khách hàng, sản phẩm, lộ trình vận chuyển, thời gian cam kết và thời gian thực tế.
+- **Mục tiêu nghiên cứu:** Dự báo xác suất một đơn hàng sẽ bị giao trễ so với kế hoạch cam kết ban đầu (Late Delivery Risk).
+- **Kỹ thuật trọng tâm:** Phân tích đặc trưng chuỗi thời gian vận chuyển, phân tích khoảng cách địa lý, mô hình phân loại nhị phân Random Forest Classifier, đánh giá Precision-Recall.
+- **Ý nghĩa thực tiễn:** Nâng cao tỷ lệ hoàn thành đơn hàng đúng hạn (OTIF), giảm thiểu chi phí đền bù hợp đồng và tăng mức độ hài lòng của khách hàng.
+
+### Đề tài PRJ-14: Phân tích và Dự báo Nhu cầu Tồn kho Doanh nghiệp Bán lẻ Quy mô Lớn (Rossmann Big Store Demand Forecasting)
+- **Chuyên ngành:** Quản trị Kho hàng & Hoạch định Cung ứng.
+- **Nguồn dữ liệu:** *Rossmann Store Sales Multi-file Dataset (Kaggle)*.
+- **Quy mô mẫu & Cấu trúc:** **1,017,209 dòng dữ liệu bán hàng hàng ngày** của 1,115 cửa hàng trên 2 tệp liên kết (`train.csv` và `store.csv`).
+- **Mục tiêu nghiên cứu:** Dự báo nhu cầu bán lẻ hàng ngày để tối ưu hóa lượng hàng tồn kho dự trữ và tần suất đặt hàng bổ sung.
+- **Kỹ thuật trọng tâm:** Ghép bảng dữ liệu cửa hàng, tạo các biến trễ (Lag features) và trung bình trượt (Rolling statistics), mô hình hồi quy Random Forest Regressor.
+- **Ý nghĩa thực tiễn:** Hạn chế tình trạng thiếu hàng gây mất doanh thu (Stock-out) và giảm tối đa chi phí lưu kho của doanh nghiệp.
+
+### Đề tài PRJ-15: Dự báo Chi phí Cước Vận tải Hàng hóa Đường biển Quốc tế (Global Freight Shipping Big Data)
+- **Chuyên ngành:** Kinh doanh Quốc tế & Logistics Quốc tế.
+- **Nguồn dữ liệu:** *Global Shipping & Container Freight Transport Dataset (Kaggle / World Bank Logistics)*.
+- **Quy mô mẫu & Cấu trúc:** **120,000+ chuyến tàu vận chuyển container** với các thông tin về tuyến đường hàng hải, khối lượng hàng TEU, giá nhiên liệu dầu Bunker, thời gian hành trình và cước phí.
+- **Mục tiêu nghiên cứu:** Xây dựng mô hình ước lượng chi phí cước vận tải biển dựa trên biến động thị trường nhiên liệu và chiều dài hải trình.
+- **Kỹ thuật trọng tâm:** Mô hình Hồi quy tuyến tính OLS (`statsmodels`), kiểm định phương sai sai số thay đổi (Heteroskedasticity), đánh giá độ co giãn của chi phí theo giá dầu.
+- **Ý nghĩa thực tiễn:** Hỗ trợ các doanh nghiệp xuất nhập khẩu lập dự toán chi phí logistics chính xác và chủ động đàm phán hợp đồng vận tải dài hạn.
+
+### Đề tài PRJ-16: Phân tích và Dự báo Thời gian Giao hàng Chặng cuối (Last-Mile Delivery Trip Big Dataset)
+- **Chuyên ngành:** Quản trị Vận hành & Logistics Đô thị.
+- **Nguồn dữ liệu:** *NYC Taxi & Limousine Commission / Uber & DoorDash Delivery Trips (Kaggle / NYC OpenData)*.
+- **Quy mô mẫu & Cấu trúc:** **500,000+ chuyến giao hàng/chuyến xe đô thị** bao gồm tọa độ GPS điểm đón và điểm trả, thời gian nhận đơn, điều kiện giao thông và thời tiết.
+- **Mục tiêu nghiên cứu:** Dự báo tổng thời lượng chuyến giao hàng chặng cuối từ điểm xuất phát đến điểm đích.
+- **Kỹ thuật trọng tâm:** Tính toán khoảng cách Haversine và khoảng cách Manhattan bằng NumPy, bóc tách khung giờ cao điểm và ngày trong tuần, mô hình Hồi quy Random Forest Regressor.
+- **Ý nghĩa thực tiễn:** Tối ưu hóa thuật toán điều phối tài xế và rút ngắn thời gian chờ đợi của khách hàng tại các đô thị lớn.
+
+### Đề tài PRJ-17: Đánh giá và Phân loại Rủi ro Đơn Hàng Nhà Cung cấp Chuỗi Cung ứng (Supplier Purchase Orders Big Dataset)
+- **Chuyên ngành:** Quản trị Thu mua (Procurement) & Chuỗi Cung ứng.
+- **Nguồn dữ liệu:** *Enterprise Supply Chain Purchase Orders & Vendor Performance Multi-file Dataset (Kaggle)*.
+- **Quy mô mẫu & Cấu trúc:** **100,000+ đơn đặt hàng thu mua (Purchase Orders)** liên kết với thông tin nhà cung cấp, tỷ lệ giao hàng lỗi và lịch sử thanh toán.
+- **Mục tiêu nghiên cứu:** Phân nhóm và xếp hạng mức độ rủi ro của nhà cung ứng (Giao trễ, sai quy cách, không đạt chuẩn chất lượng).
+- **Kỹ thuật trọng tâm:** Chuẩn hóa chỉ số hiệu suất KPI, phân tích tương quan đa biến, thuật toán phân cụm $K$-Means kết hợp chấm điểm trọng số rủi ro.
+- **Ý nghĩa thực tiễn:** Giúp doanh nghiệp chủ động phân bổ tỷ trọng đặt hàng, giảm thiểu rủi ro gián đoạn nguồn cung sản xuất.
+
+---
+
+## NHÓM IV: BẤT ĐỘNG SẢN, ĐÔ THỊ & DU LỊCH - KHÁCH SẠN
+
+### Đề tài PRJ-18: Xây dựng Mô hình Định giá Bất động sản Nhà ở Quy mô Lớn (US Real Estate Big Transactions & Valuation)
+- **Chuyên ngành:** Kinh doanh Bất động sản & Thẩm định Giá.
+- **Nguồn dữ liệu:** *US Real Estate Listings Dataset (Kaggle - 200,000+ bất động sản)* hoặc *UK Land Registry Price Paid Data*.
+- **Quy mô mẫu & Cấu trúc:** **200,000+ giao dịch mua bán bất động sản** bao gồm diện tích đất, số phòng ngủ, số phòng tắm, diện tích sàn, vị trí bang/quận và giá bán thực tế.
+- **Mục tiêu nghiên cứu:** Ước lượng giá trị thị trường của bất động sản dựa trên mô hình định giá vi mô (Hedonic Pricing Model).
+- **Kỹ thuật trọng tâm:** Xử lý ngoại lai về giá nhà, kiểm tra đa cộng tuyến (VIF), hồi quy OLS và Ridge/Lasso Regression, đánh giá sai số MAPE và $R^2$.
+- **Ý nghĩa thực tiễn:** Cung cấp công cụ định giá tài sản khách quan cho các sàn giao dịch bất động sản và các tổ chức định giá thế chấp ngân hàng.
+
+### Đề tài PRJ-19: Dự báo Giá Cho thuê Phòng Lưu trú và Tỷ lệ Lấp đầy Airbnb (Inside Airbnb Detailed Calendar Multi-table Dataset)
+- **Chuyên ngành:** Quản trị Khách sạn & Du lịch Đô thị.
+- **Nguồn dữ liệu:** *Inside Airbnb Dataset (New York City, Paris hoặc Tokyo)*.
+- **Quy mô mẫu & Cấu trúc:** **1,000,000+ dòng lịch đặt phòng** trên 2 tệp liên kết (`calendar.csv` và `listings.csv`).
+- **Mục tiêu nghiên cứu:** Dự báo giá thuê phòng theo đêm và phân tích các yếu tố tác động đến tỷ lệ lấp đầy phòng lưu trú.
+- **Kỹ thuật trọng tâm:** Ghép nối bảng lịch chi tiết theo mã phòng (`listing_id`), trích xuất tiện ích phòng (Amenities Parsing), biến đổi logarit cho giá, mô hình hồi quy Random Forest.
+- **Ý nghĩa thực tiễn:** Giúp các chủ kinh doanh homestay và khách sạn căn hộ xây dựng chiến lược giá linh hoạt (Dynamic Pricing) theo mùa vụ.
+
+### Đề tài PRJ-20: Dự báo Khả năng Hủy Đặt phòng Khách sạn Quy mô Lớn (Hotel Booking Demand Big Dataset)
+- **Chuyên ngành:** Quản trị Doanh thu Khách sạn (Revenue Management).
+- **Nguồn dữ liệu:** *Hotel Booking Demand Dataset (Kaggle)*.
+- **Quy mô mẫu & Cấu trúc:** **119,390 lượt đặt phòng khách sạn** (Resort Hotel và City Hotel) với 32 đặc trưng chi tiết về thời gian đặt trước (Lead Time), cơ cấu khách, loại phòng, hình thức đặt cọc và kênh bán lẻ.
+- **Mục tiêu nghiên cứu:** Dự báo xác suất khách hàng sẽ hủy đặt phòng trước ngày nhận phòng (Check-in).
+- **Kỹ thuật trọng tâm:** Phân tích tương quan giữa Lead Time và tỷ lệ hủy, mã hóa biến phân loại, mô hình phân loại Logistic Regression và Decision Tree, đánh giá Confusion Matrix.
+- **Ý nghĩa thực tiễn:** Giúp khách sạn thực hiện chính sách bán phòng vượt mức an toàn (Overbooking) một cách tối ưu, giảm thiểu tổn thất phòng trống.
+
+### Đề tài PRJ-21: Phân tích Mức độ Hài lòng và Hành vi của Hành khách Hàng không (Airline Passenger Satisfaction Big Dataset)
+- **Chuyên ngành:** Quản trị Dịch vụ Hàng không & Kinh tế Du lịch.
+- **Nguồn dữ liệu:** *Airline Passenger Satisfaction Dataset (Kaggle)*.
+- **Quy mô mẫu & Cấu trúc:** **129,880 bản ghi khảo sát hành khách** bao gồm 22 tiêu chí dịch vụ (độ thoải mái của ghế ngồi, độ trễ chuyến bay, dịch vụ ăn uống, chất lượng Wifi, thủ tục check-in).
+- **Mục tiêu nghiên cứu:** Nhận diện các điểm chạm dịch vụ (Service Touchpoints) quan trọng nhất quyết định sự hài lòng của hành khách.
+- **Kỹ thuật trọng tâm:** Xử lý giá trị khuyết ở biến trễ bay, phân tích tương quan Seaborn Heatmap, mô hình phân loại Random Forest Classifier, phân tích Feature Importance.
+- **Ý nghĩa thực tiễn:** Hỗ trợ các hãng hàng không nâng cấp chất lượng dịch vụ nhắm đúng các yếu tố khách hàng quan tâm nhất.
+
+### Đề tài PRJ-22: Dự báo Nhu cầu Sử dụng Dịch vụ Xe đạp Chia sẻ Đô thị (CitiBike Trip Big Data)
+- **Chuyên ngành:** Kinh tế Đô thị & Kinh tế Chia sẻ (Sharing Economy).
+- **Nguồn dữ liệu:** *New York City CitiBike System Data (NYC OpenData / Kaggle)*.
+- **Quy mô mẫu & Cấu trúc:** **500,000+ lượt thuê xe theo giờ/ngày** trên nhiều tệp tin dữ liệu chuyến đi theo tháng kết hợp dữ liệu khí tượng.
+- **Mục tiêu nghiên cứu:** Dự báo tổng số lượng lượt thuê xe tại từng cụm trạm trung chuyển theo khung giờ và điều kiện thời tiết.
+- **Kỹ thuật trọng tâm:** Ghép nối dữ liệu chuyến đi với dữ liệu thời tiết, tạo biến chu kỳ thời gian (Giờ, Ngày trong tuần), mô hình hồi quy Random Forest Regressor.
+- **Ý nghĩa thực tiễn:** Hỗ trợ doanh nghiệp vận hành phân bổ phương tiện hợp lý giữa các trạm, giải quyết tình trạng thiếu xe vào giờ cao điểm.
+
+---
+
+## NHÓM V: QUẢN TRỊ NHÂN SỰ & VẬN HÀNH DOANH NGHIỆP
+
+### Đề tài PRJ-23: Phân tích và Dự báo Nguy cơ Nghỉ việc của Nhân sự Quy mô Lớn (Enterprise Workforce Turnover Big Dataset)
+- **Chuyên ngành:** Quản trị Nguồn Nhân lực (HRM) & Quản trị Doanh nghiệp.
+- **Nguồn dữ liệu:** *US Workforce & HR Analytics Dataset (Kaggle / Synthesized Enterprise Data)*.
+- **Quy mô mẫu & Cấu trúc:** **100,000+ hồ sơ nhân sự** qua các năm bao gồm thông tin lương, phòng ban, số năm làm việc, số giờ làm thêm, kết quả đánh giá KPI và trạng thái làm việc (Đang làm vs Đã nghỉ).
+- **Mục tiêu nghiên cứu:** Xác định các nhân tố chính thúc đẩy nhân viên xin thôi việc và dự báo nhân sự có nguy cơ nghỉ việc.
+- **Kỹ thuật trọng tâm:** Bảng tổng hợp chéo `pivot_table`, kiểm định tính độc lập Chi-Square, mô hình phân loại Logistic Regression và Random Forest Classifier.
+- **Ý nghĩa thực tiễn:** Giúp ban giám đốc và phòng nhân sự chủ động xây dựng chính sách phúc lợi giữ chân nhân sự cốt cán.
+
+### Đề tài PRJ-24: Dự báo Mức lương và Định chuẩn Thu nhập Nhân sự Toàn cầu (Global Tech & Business Salary Big Dataset)
+- **Chuyên ngành:** Quản trị Tiền lương & Đãi ngộ (C&B - Compensation & Benefits).
+- **Nguồn dữ liệu:** *Levels.fyi / Glassdoor Global Salaries Dataset (Kaggle)*.
+- **Quy mô mẫu & Cấu trúc:** **100,000+ bản ghi thu nhập** với thông tin chức danh, số năm kinh nghiệm, học vấn, quy mô công ty, tiền thưởng (Bonus), cổ phiếu (Stock) và vị trí địa lý.
+- **Mục tiêu nghiên cứu:** Ước lượng mức thu nhập tổng thể (Total Compensation) cho từng vị trí công việc.
+- **Kỹ thuật trọng tâm:** Làm sạch dữ liệu tiền tệ, xử lý phân phối lệch phải bằng phép biến đổi logarit, mô hình Hồi quy đa biến và Random Forest Regressor.
+- **Ý nghĩa thực tiễn:** Giúp doanh nghiệp xây dựng khung thang bảng lương cạnh tranh trên thị trường tuyển dụng.
+
+### Đề tài PRJ-25: Phân tích Tác động của Làm việc Từ xa đến Năng suất Lao động Toàn cầu (Global Remote Work Big Survey Analysis)
+- **Chuyên ngành:** Hành vi Tổ chức & Quản trị Đổi mới.
+- **Nguồn dữ liệu:** *Global Remote Work & Mental Health Multi-Country Survey (Kaggle / Open Science Data)*.
+- **Quy mô mẫu & Cấu trúc:** **100,000+ phản hồi khảo sát** của người lao động trên nhiều quốc gia về chế độ làm việc (Remote, Hybrid, Onsite), thời gian làm việc, mức độ căng thẳng và năng suất tự đánh giá.
+- **Mục tiêu nghiên cứu:** Đo lường sự khác biệt về năng suất và sự cân bằng công việc - cuộc sống giữa các mô hình làm việc.
+- **Kỹ thuật trọng tâm:** Thống kê mô tả bảng chéo `crosstab()`, kiểm định ANOVA và Kruskal-Wallis, trực quan hóa biểu đồ thanh phân tầng.
+- **Ý nghĩa thực tiễn:** Cung cấp luận cứ khoa học giúp các tổ chức ban hành chính sách làm việc linh hoạt hiệu quả.
+
+### Đề tài PRJ-26: Phân loại và Khai phá Nhu cầu Tuyển dụng từ Tin Tuyển dụng Lớn (LinkedIn / Indeed Big Job Postings Classification)
+- **Chuyên ngành:** Tuyển dụng & Quản trị Nhân tài (Talent Acquisition).
+- **Nguồn dữ liệu:** *LinkedIn / Indeed Job Postings Dataset (Kaggle - 100,000+ tin tuyển dụng)*.
+- **Quy mô mẫu & Cấu trúc:** **100,000+ bài đăng tuyển dụng** gồm mô tả công việc (Job Description), yêu cầu kỹ năng, trình độ học vấn, ngành nghề và mức lương đề xuất.
+- **Mục tiêu nghiên cứu:** Tự động phân loại tin tuyển dụng theo ngành nghề và nhận diện các kỹ năng cốt lõi đang có nhu cầu cao nhất.
+- **Kỹ thuật trọng tâm:** Trích xuất từ khóa bằng biểu thức chính quy (`re`), vector hóa TF-IDF, mô hình phân loại văn bản đa lớp Naive Bayes và Logistic Regression.
+- **Ý nghĩa thực tiễn:** Giúp các cơ sở giáo dục đại học và ứng viên cập nhật xu hướng kỹ năng thị trường lao động cần.
+
+### Đề tài PRJ-27: Phân tích Hiệu suất Làm việc và Đề bạt Thăng tiến Nhân viên (Employee Performance & Promotion Big Dataset)
+- **Chuyên ngành:** Quản trị Hiệu suất (Performance Management - KPI/OKR).
+- **Nguồn dữ liệu:** *Enterprise Employee Evaluation History Dataset (Kaggle)*.
+- **Quy mô mẫu & Cấu trúc:** **100,000+ lượt đánh giá nhân viên** qua các năm với các biến số về số giờ đào tạo, kết quả dự án, thâm niên và quyết định thăng chức.
+- **Mục tiêu nghiên cứu:** Dự báo khả năng một nhân viên được đề bạt thăng tiến và nhận diện các yếu tố thúc đẩy thành tích vượt trội.
+- **Kỹ thuật trọng tâm:** Phân tích ma trận tương quan giữa số giờ đào tạo và điểm hiệu suất, mô hình phân loại Decision Tree Classifier.
+- **Ý nghĩa thực tiễn:** Đảm bảo tính công bằng và minh bạch trong quy trình quy hoạch nhân sự và khen thưởng nội bộ.
+
+---
+
+## NHÓM VI: KINH TẾ VĨ MÔ, TÀI CHÍNH CÔNG & PHÁT TRIỂN BỀN VỮNG
+
+### Đề tài PRJ-28: Phân tích và Dự báo Chỉ số Lạm phát và CPI Toàn cầu (World Bank Global Macroeconomic Big Time Series)
+- **Chuyên ngành:** Kinh tế học Vĩ mô & Kinh tế Phát triển.
+- **Nguồn dữ liệu:** *World Bank Open Data / FRED Global Economic Database*.
+- **Quy mô mẫu & Cấu trúc:** **150,000+ quan sát chuỗi thời gian** bao gồm dữ liệu hàng tháng/hàng năm của hơn 180 quốc gia về lạm phát, cung tiền M2, lãi suất điều hành, giá năng lượng và tỷ giá hối đoái.
+- **Mục tiêu nghiên cứu:** Đánh giá tác động của cung tiền và giá hàng hóa toàn cầu đối với tỷ lệ lạm phát tại các nhóm quốc gia phát triển và đang phát triển.
+- **Kỹ thuật trọng tâm:** Xử lý chuỗi thời gian đa quốc gia, ghép nối bảng theo mã quốc gia (`ISO3`) và năm, mô hình Hồi quy OLS đa biến với `statsmodels`, phân tích $p$-value.
+- **Ý nghĩa thực tiễn:** Cung cấp cơ sở phân tích cho các nhà hoạch định chính sách tiền tệ và doanh nghiệp quản trị rủi ro chi phí.
+
+### Đề tài PRJ-29: Đánh giá Tác động của Dòng vốn FDI và Thương mại Quốc tế đến Tăng trưởng GDP (UN Comtrade International Trade Big Data)
+- **Chuyên ngành:** Kinh tế Quốc tế & Kinh tế Đầu tư.
+- **Nguồn dữ liệu:** *UN Comtrade Database / World Development Indicators*.
+- **Quy mô mẫu & Cấu trúc:** **250,000+ dòng dữ liệu giao dịch thương mại** đa quốc gia, dòng vốn FDI và tốc độ tăng trưởng GDP thực tế trong hơn 20 năm.
+- **Mục tiêu nghiên cứu:** Đo lường tác động định lượng của độ mở thương mại và quy mô vốn FDI đến tốc độ tăng trưởng kinh tế.
+- **Kỹ thuật trọng tâm:** Ghép nối bảng dữ liệu đa quốc gia bằng `pd.merge()`, mô hình hồi quy kinh tế lượng đa biến OLS, biểu đồ phân tán Bubble Chart.
+- **Ý nghĩa thực tiễn:** Cung cấp góc nhìn thực nghiệm đánh giá hiệu quả của chính sách xúc tiến đầu tư nước ngoài và tự do hóa thương mại.
+
+### Đề tài PRJ-30: Phân tích Điểm số Phát triển Bền vững (ESG Score) và Hiệu quả Tài chính Doanh nghiệp (Corporate ESG Big Panel Dataset)
+- **Chuyên ngành:** Quản trị Bền vững & Tài chính Doanh nghiệp Xanh.
+- **Nguồn dữ liệu:** *Refinitiv / S&P Global Corporate ESG Scores & Financial Dataset (Kaggle)*.
+- **Quy mô mẫu & Cấu trúc:** **100,000+ quan sát doanh nghiệp đa quốc gia** qua nhiều năm bao gồm điểm số E (Môi trường), S (Xã hội), G (Quản trị) và các chỉ số tài chính ROA, ROE, Tobin's Q.
+- **Mục tiêu nghiên cứu:** Kiểm định mối quan hệ giữa cam kết phát triển bền vững và giá trị vốn hóa của doanh nghiệp trên thị trường chứng khoán.
+- **Kỹ thuật trọng tâm:** Phân tích tương quan Heatmap, mô hình Hồi quy đa biến OLS kiểm soát quy mô và cấu trúc vốn, kiểm định hiện tượng đa cộng tuyến.
+- **Ý nghĩa thực tiễn:** Thúc đẩy doanh nghiệp chuyển đổi xanh và thực thi trách nhiệm xã hội doanh nghiệp (CSR/ESG).
+
+### Đề tài PRJ-31: Phân tích Thực trạng Bất bình đẳng Thu nhập và các Yếu tố Nhân khẩu học (US Census Bureau ACS Big Survey Data)
+- **Chuyên ngành:** Kinh tế Xã hội & Chính sách Công.
+- **Nguồn dữ liệu:** *US Census American Community Survey (ACS) Public Use Microdata (IPUMS / Kaggle)*.
+- **Quy mô mẫu & Cấu trúc:** **300,000+ bản ghi mẫu điều tra dân số** cá nhân bao gồm trình độ học vấn, số năm đào tạo, chủng tộc, độ tuổi, giới tính và thu nhập hàng năm.
+- **Mục tiêu nghiên cứu:** Dự báo nhóm thu nhập và đo lường khoảng cách thu nhập theo giới tính và trình độ học vấn (Wage Gap Analysis).
+- **Kỹ thuật trọng tâm:** Phân tích khoảng cách thu nhập, mã hóa biến thứ bậc, mô hình phân loại Logistic Regression và Random Forest Classifier.
+- **Ý nghĩa thực tiễn:** Cung cấp bằng chứng định lượng giúp các nhà hoạch định chính sách xây dựng chương trình an sinh xã hội và đào tạo nghề.
+
+### Đề tài PRJ-32: Phân tích Xu hướng Chuyển dịch Năng lượng Tái tạo và Lượng Phát thải CO2 Toàn cầu (Our World in Data Energy Big Time Series)
+- **Chuyên ngành:** Kinh tế Môi trường & Kinh tế Năng lượng.
+- **Nguồn dữ liệu:** *Our World in Data Energy & CO2 Emissions Comprehensive Dataset*.
+- **Quy mô mẫu & Cấu trúc:** **100,000+ quan sát chuỗi thời gian** chi tiết theo quốc gia và vùng lãnh thổ về sản lượng điện than, khí đốt, năng lượng mặt trời, điện gió và phát thải CO2.
+- **Mục tiêu nghiên cứu:** Phân tích xu hướng chuyển dịch năng lượng và xây dựng mô hình dự báo lượng phát thải khí nhà kính đến năm 2030.
+- **Kỹ thuật trọng tâm:** Gom nhóm dữ liệu khu vực bằng `groupby()`, phân tích chuỗi thời gian, biểu đồ đường Seaborn đa biến, mô hình Hồi quy dự báo xu hướng phát thải.
+- **Ý nghĩa thực tiễn:** Hỗ trợ đánh giá tiến độ thực hiện cam kết Net-Zero và cung cấp cơ sở định giá cho thị trường tín chỉ carbon.
+
+---
+
+## NHÓM VII: KINH DOANH SỐ, CÔNG NGHỆ NỀN TẢNG & KINH TẾ DỊCH VỤ (MỞ RỘNG)
+
+### Đề tài PRJ-33: Phân tích và Dự báo Hành vi Hoàn trả Hàng Hóa trong Thương mại Điện tử (E-Commerce Product Return Rate Prediction)
+- **Chuyên ngành:** Thương mại Điện tử & Logistics Ngược (Reverse Logistics).
+- **Nguồn dữ liệu:** *Online Retail II / E-Commerce Returns Big Dataset (Kaggle / UCI Machine Learning Repository)*.
+- **Quy mô mẫu & Cấu trúc:** **541,909 giao dịch bán lẻ trực tuyến** qua 8 trường thông tin chính (`InvoiceNo`, `StockCode`, `Description`, `Quantity`, `InvoiceDate`, `UnitPrice`, `CustomerID`, `Country`), trong đó các đơn hàng bị hủy hoặc hoàn trả được định danh bởi tiền tố `C` trong mã hóa đơn.
+- **Mục tiêu nghiên cứu:** Xây dựng mô hình phân loại dự báo xác suất một đơn hàng hoặc dòng sản phẩm sẽ bị người mua yêu cầu hoàn trả/hủy đơn.
+- **Kỹ thuật trọng tâm:** Lọc và tạo nhãn nhị phân hoàn hàng (`is_returned`), trích xuất đặc trưng đơn giá, quy mô đơn hàng, quốc gia và nhóm giờ đặt mua, mô hình phân loại Logistic Regression và Random Forest Classifier, đánh giá Precision-Recall và ROC-AUC.
+- **Ý nghĩa thực tiễn:** Giúp các sàn TMĐT và nhà bán lẻ chủ động nhận diện nhóm sản phẩm có rủi ro hoàn trả cao, tối ưu hóa quy trình kiểm soát chất lượng và giảm thiểu chi phí vận hành logistics ngược.
+
+### Đề tài PRJ-34: Dự báo Khả năng Mua Hàng Lặp lại của Người Tiêu dùng Trực tuyến (E-Commerce Repeat Buyer / Repurchase Prediction)
+- **Chuyên ngành:** Marketing Dữ liệu & Quản trị Vòng đời Khách hàng (Customer Lifecycle Management).
+- **Nguồn dữ liệu:** *AliBaba Repeat Buyers / Taobao User Behavior Big Dataset (Kaggle / Aliyun)*.
+- **Quy mô mẫu & Cấu trúc:** **1,000,000+ bản ghi nhật ký tương tác người dùng** (User Log) liên kết với bảng thông tin gian hàng và ngành hàng (`user_log.csv`, `user_info.csv`).
+- **Mục tiêu nghiên cứu:** Dự báo xác suất một khách hàng mới sẽ thực hiện giao dịch mua hàng lặp lại (Repurchase) tại cùng một gian hàng trong vòng 30 ngày tiếp theo.
+- **Kỹ thuật trọng tâm:** Tối ưu hóa bộ nhớ với `category` và `int32`, tổng hợp lịch sử tương tác qua `groupby().agg()` (tần suất xem sản phẩm, tỷ lệ thêm vào giỏ hàng, số lần nhấp chuột), mô hình phân loại Random Forest Classifier.
+- **Ý nghĩa thực tiễn:** Hỗ trợ doanh nghiệp bán lẻ tối ưu hóa ngân sách tiếp thị nhắm chọn lại (Retargeting) và thiết kế chính sách ưu đãi khách hàng thân thiết hiệu quả.
+
+### Đề tài PRJ-35: Phân tích Tiêu thụ Điện năng Hộ gia đình và Dự báo Phụ tải Tiêu thụ (Household Electric Power Consumption & Load Forecasting)
+- **Chuyên ngành:** Kinh tế Năng lượng & Quản lý Dịch vụ Tiện ích Công cộng (Utility Management).
+- **Nguồn dữ liệu:** *Individual Household Electric Power Consumption Dataset (UCI Machine Learning Repository / Kaggle)*.
+- **Quy mô mẫu & Cấu trúc:** **2,075,259 bản ghi chuỗi thời gian theo phút** đo đạc điện năng tiêu thụ thực tế của hộ gia đình trong 4 năm liên tục gồm 9 thuộc tính (công suất tác dụng, công suất phản kháng, điện áp, cường độ dòng điện và 3 đồng hồ đo phụ của từng khu vực trong nhà).
+- **Mục tiêu nghiên cứu:** Phân tích mô hình tiêu thụ năng lượng theo chu kỳ thời gian và dự báo tổng công suất tiêu thụ điện hàng ngày.
+- **Kỹ thuật trọng tâm:** Xử lý chuỗi thời gian Pandas (`resample('1H')`, `resample('1D')`), tạo biến trễ (Lag features) và trung bình trượt (Rolling mean), mô hình Hồi quy tuyến tính đa biến (OLS) và Random Forest Regressor.
+- **Ý nghĩa thực tiễn:** Giúp các công ty điện lực dự báo nhu cầu phụ tải lưới điện, xây dựng biểu giá điện theo khung giờ cao điểm (Time-of-Use) và hỗ trợ hộ gia đình tiết kiệm năng lượng.
+
+### Đề tài PRJ-36: Đánh giá Rủi ro và Dự báo Tỷ lệ Chậm Trả Nợ Vay Học tập Sinh viên (Higher Education Student Loan Repayment & Risk Analysis)
+- **Chuyên ngành:** Tài chính Giáo dục & Chính sách Tín dụng Xã hội.
+- **Nguồn dữ liệu:** *US Department of Education College Scorecard Dataset (Data.gov / Kaggle)*.
+- **Quy mô mẫu & Cấu trúc:** **120,000+ bản ghi trường đại học/cao đẳng và đoàn hệ sinh viên tốt nghiệp** qua nhiều năm với các chỉ số về học phí, tỷ lệ tốt nghiệp, mức thu nhập trung bình sau 3–5 năm, quy mô nợ vay trung bình và tỷ lệ chậm trả nợ (Default Rate).
+- **Mục tiêu nghiên cứu:** Xác định các nhân tố thuộc về đặc tính cơ sở đào tạo, chi phí học tập và ngành nghề đào tạo tác động đến khả năng hoàn trả nợ vay học tập.
+- **Kỹ thuật trọng tâm:** Ghép nối dữ liệu đa năm, phân tích tương quan đa biến Pearson/Spearman, mô hình Hồi quy đa biến OLS (`statsmodels`) và Ridge Regression, kiểm định hiện tượng đa cộng tuyến (VIF).
+- **Ý nghĩa thực tiễn:** Cung cấp luận cứ khoa học cho các tổ chức tài chính và cơ quan quản lý giáo dục trong việc thẩm định tín dụng học tập và xây dựng quỹ hỗ trợ sinh viên.
+
+### Đề tài PRJ-37: Phân tích Tương tác và Dự báo Người Dùng Rời bỏ Ứng dụng Di động (Mobile App User Engagement & Churn Prediction)
+- **Chuyên ngành:** Kinh doanh Số (Digital Business) & Quản trị Sản phẩm Công nghệ (Product Management).
+- **Nguồn dữ liệu:** *Mobile App Analytics & User Churn Big Dataset (Kaggle)*.
+- **Quy mô mẫu & Cấu trúc:** **150,000+ hồ sơ người dùng ứng dụng di động** với các trường dữ liệu về thời lượng phiên sử dụng (Session Duration), số lượng màn hình tương tác, tần suất mở ứng dụng hàng tuần, số giao dịch In-app purchase và hệ điều hành.
+- **Mục tiêu nghiên cứu:** Dự báo người dùng có nguy cơ ngừng sử dụng hoặc gỡ cài đặt ứng dụng sau 14 ngày không hoạt động.
+- **Kỹ thuật trọng tâm:** Phân tích nhóm thuần tập (Cohort Analysis), chuẩn hóa thang đo `StandardScaler`, mô hình phân loại Logistic Regression và Random Forest Classifier, đánh giá Feature Importance.
+- **Ý nghĩa thực tiễn:** Hỗ trợ đội ngũ phát triển sản phẩm cải thiện trải nghiệm người dùng (UX), tối ưu hóa luồng Onboarding và gửi thông báo kích hoạt cá nhân hóa kịp thời.
+
+### Đề tài PRJ-38: Dự báo Nhu cầu Gọi xe Công nghệ và Khả năng Tăng giá Cao điểm Đô thị (Ride-Hailing Demand & Surge Pricing Forecasting)
+- **Chuyên ngành:** Kinh tế Nền tảng (Platform Economy) & Vận tải Đô thị.
+- **Nguồn dữ liệu:** *Chicago Taxi Trips / Uber & Lyft Trips Big Dataset (Chicago Data Portal / Kaggle)*.
+- **Quy mô mẫu & Cấu trúc:** **400,000+ chuyến xe đô thị** với tọa độ không gian đón/trả khách, thời điểm bắt đầu chuyến đi, cước phí, tiền tip, hình thức thanh toán và khoảng cách di chuyển.
+- **Mục tiêu nghiên cứu:** Dự báo tổng số lượng chuyến xe phát sinh tại từng phân vùng đô thị theo từng khung giờ và nhận diện nguy cơ phát sinh giá cước cao điểm (Surge Pricing).
+- **Kỹ thuật trọng tâm:** Gom nhóm dữ liệu không gian - thời gian (`groupby(['Community_Area', 'Hour'])`), trích xuất ngày làm việc/cuối tuần, mô hình Hồi quy Random Forest Regressor, đo lường bằng RMSE và $R^2$.
+- **Ý nghĩa thực tiễn:** Giúp các nền tảng gọi xe công nghệ tối ưu hóa thuật toán điều phối phương tiện đến các điểm nóng giao thông và cân bằng cung - cầu thị trường.
+
+### Đề tài PRJ-39: Phân tích Doanh thu Phòng vé và Dự báo Hiệu quả Thương mại của Tác phẩm Điện ảnh (Global Film Box Office Revenue & Financial Success Prediction)
+- **Chuyên ngành:** Kinh tế Truyền thông & Công nghiệp Giải trí (Entertainment Industry).
+- **Nguồn dữ liệu:** *TMDB Movie Dataset / IMDb & Box Office Mojo Big Data (Kaggle)*.
+- **Quy mô mẫu & Cấu trúc:** **100,000+ bản ghi phim điện ảnh toàn cầu** bao gồm kinh phí sản xuất (Budget), doanh thu phòng vé toàn cầu (Worldwide Gross), thể loại, ngôn ngữ gốc, thời lượng, điểm bình chọn và số lượng lượt đánh giá.
+- **Mục tiêu nghiên cứu:** Xây dựng mô hình ước lượng tổng doanh thu phòng vé toàn cầu và xác định các nhân tố chính quyết định tỷ suất sinh lời của dự án phim.
+- **Kỹ thuật trọng tâm:** Xử lý và trích xuất dữ liệu thể loại phim, biến đổi logarit (`np.log1p`) đối với các biến tài chính có phân phối lệch phải, mô hình Hồi quy đa biến OLS và Random Forest Regressor.
+- **Ý nghĩa thực tiễn:** Hỗ trợ các hãng phim và nhà đầu tư điện ảnh đánh giá rủi ro tài chính, lựa chọn thời điểm phát hành và tối ưu hóa ngân sách tiếp thị.
+
+### Đề tài PRJ-40: Dự báo Rủi ro Mất Khả năng Thanh toán và Phá sản Doanh nghiệp (Corporate Bankruptcy & Insolvency Risk Prediction)
+- **Chuyên ngành:** Tài chính Doanh nghiệp & Kiểm toán Rủi ro Tín dụng.
+- **Nguồn dữ liệu:** *Company Bankruptcy Prediction Dataset (Taiwan Economic Journal / Polish Companies Bankruptcy Data - Kaggle / UCI)*.
+- **Quy mô mẫu & Cấu trúc:** **100,000+ quan sát báo cáo tài chính doanh nghiệp** qua các năm với hơn 60 chỉ số tài chính (Tỷ số thanh toán hiện hành, vòng quay hàng tồn kho, tỷ lệ đòn bẩy tài chính, tỷ suất sinh lời ROA/ROE, dòng tiền thuần từ hoạt động kinh doanh).
+- **Mục tiêu nghiên cứu:** Xây dựng mô hình phân loại nhị phân cảnh báo sớm nguy cơ doanh nghiệp rơi vào tình trạng phá sản hoặc mất khả năng thanh toán.
+- **Kỹ thuật trọng tâm:** Lọc biến đa cộng tuyến bằng kiểm định VIF, kỹ thuật cân bằng dữ liệu mẫu (Class Weighting), mô hình Hồi quy Logistic và Random Forest Classifier, đánh giá ROC-AUC và Confusion Matrix.
+- **Ý nghĩa thực tiễn:** Cung cấp hệ thống cảnh báo sớm rủi ro tài chính cho các ngân hàng thương mại khi thẩm định tín dụng doanh nghiệp và các quỹ đầu tư định lượng.
+
+### Đề tài PRJ-41: Phân loại Hành vi Chi tiêu và Xếp hạng Tín nhiệm Khách hàng Cá nhân (Individual Financial Behavior & Credit Score Classification)
+- **Chuyên ngành:** Ngân hàng Bán lẻ & Quản trị Rủi ro Khách hàng Cá nhân.
+- **Nguồn dữ liệu:** *Credit Score Multi-class Classification Dataset (Kaggle)*.
+- **Quy mô mẫu & Cấu trúc:** **100,000+ hồ sơ lịch sử tài chính khách hàng cá nhân** với các thông tin về thu nhập hàng tháng, số lượng tài khoản ngân hàng, số lượng thẻ tín dụng, lãi suất vay, số ngày trả chậm, tỷ lệ sử dụng hạn mức thẻ tín dụng và phân hạng tín nhiệm (Good, Standard, Poor).
+- **Mục tiêu nghiên cứu:** Tự động phân loại khách hàng vào 3 phân hạng tín dụng dựa trên hành vi chi tiêu và lịch sử thanh toán nợ.
+- **Kỹ thuật trọng tâm:** Xử lý giá trị khuyết và ngoại lai, mã hóa biến định tính với `OrdinalEncoder`, chuẩn hóa `StandardScaler`, mô hình phân loại đa lớp Random Forest Classifier, phân tích ma trận nhầm lẫn đa chiều.
+- **Ý nghĩa thực tiễn:** Tự động hóa quy trình chấm điểm tín dụng cá nhân, rút ngắn thời gian xét duyệt hồ sơ mở thẻ tín dụng và cá nhân hóa mức lãi suất cho vay.
+
+### Đề tài PRJ-42: Phân tích Thị trường Nhà ở Cho thuê và Định giá Tiền thuê Hàng tháng (Urban Apartment Rental Market & Monthly Rent Valuation)
+- **Chuyên ngành:** Kinh doanh Bất động sản Cho thuê & Kinh tế Đô thị.
+- **Nguồn dữ liệu:** *Apartment for Rent Classified Dataset / Urban Rental Market Big Data (Kaggle - 100,000+ listings)*.
+- **Quy mô mẫu & Cấu trúc:** **100,000+ tin đăng cho thuê căn hộ/nhà ở đô thị** bao gồm vị trí địa lý (bang, thành phố, mã zip), diện tích sử dụng ($m^2$/sqft), số phòng ngủ, số phòng tắm, trạng thái nội thất, chính sách vật nuôi và giá thuê hàng tháng.
+- **Mục tiêu nghiên cứu:** Ước lượng mức giá cho thuê căn hộ hàng tháng hợp lý dựa trên đặc tính không gian và các tiện ích đi kèm.
+- **Kỹ thuật trọng tâm:** Làm sạch dữ liệu định tính và ngoại lai giá thuê bằng khoảng tứ phân vị IQR, mã hóa One-Hot cho biến vị trí, mô hình Hồi quy đa biến OLS và Random Forest Regressor, đo lường bằng MAE và $R^2$.
+- **Ý nghĩa thực tiễn:** Cung cấp công cụ định giá khách quan cho các sàn môi giới BĐS, giúp nhà đầu tư tính toán tỷ suất sinh lời dòng tiền cho thuê và người đi thuê tránh bị trả giá cao hơn mặt bằng chung.
+
+---
+
+# PHẦN 6: BẢNG TỔNG HỢP MA TRẬN 42 ĐỀ TÀI DỮ LIỆU LỚN
+
+| STT | Mã Đề Tài | Tên Đề Tài | Chuyên Ngành | Cỡ Mẫu Dự Kiến | Loại Bài Toán | Thư Viện Trọng Tâm |
+|:---:|:---:|---|---|:---:|---|---|
+| **1** | PRJ-01 | Phân tích và Dự báo Rủi ro Vỡ nợ Tín dụng Cá nhân | Tài chính – Ngân hàng | 300k+ dòng (7 bảng) | Phân loại | `pandas`, `seaborn`, `scikit-learn` |
+| **2** | PRJ-02 | Dự báo Khách hàng Rời bỏ Dịch vụ Ngân hàng | CRM & Ngân hàng | 165k+ dòng | Phân loại | `pandas`, `matplotlib`, `scikit-learn` |
+| **3** | PRJ-03 | Phát hiện Giao dịch Gian lận Thẻ Tín dụng | FinTech & Quản trị Rủi ro | 284k+ dòng | Phân loại mất cân bằng | `numpy`, `scikit-learn` |
+| **4** | PRJ-04 | Dự báo Chi phí Bồi thường Bảo hiểm Y tế | Bảo hiểm & Thẩm định | 150k+ dòng | Hồi quy | `pandas`, `scipy`, `scikit-learn` |
+| **5** | PRJ-05 | Phân tích Biến động và Lợi suất Cổ phiếu | Đầu tư Tài chính | 200k+ dòng | Chuỗi thời gian & Hồi quy | `yfinance`, `pandas`, `statsmodels` |
+| **6** | PRJ-06 | Phân khúc Khách hàng Giao dịch Thẻ Tín dụng | Ngân hàng Bán lẻ | 103k+ dòng (3 bảng) | Phân cụm | `pandas`, `scikit-learn` ($K$-Means) |
+| **7** | PRJ-07 | Dự báo Doanh số Bán lẻ Chuỗi Cửa hàng | Quản trị Bán lẻ | 500k+ dòng (4 bảng) | Hồi quy | `pandas`, `datetime`, `scikit-learn` |
+| **8** | PRJ-08 | Phân tích Giỏ hàng Instacart | Thương mại Điện tử | 1M+ dòng (5 bảng) | Khai phá Luật kết hợp | `pandas`, `mlxtend` (Apriori) |
+| **9** | PRJ-09 | Khai phá Cảm xúc Đánh giá Khách hàng TMĐT | Marketing Số | 200k+ dòng | Xử lý Văn bản & Phân loại | `re`, `pandas`, `scikit-learn` |
+| **10** | PRJ-10 | Phân loại Khách hàng RFM Olist TMĐT | Marketing Dữ liệu | 100k+ dòng (9 bảng) | Phân tích RFM & Phân cụm | `pandas`, `plotly`, `scikit-learn` |
+| **11** | PRJ-11 | Dự báo Chuyển đổi và Nhấp chuột Quảng cáo Số | Digital Marketing | 200k+ dòng | Phân loại | `pandas`, `seaborn`, `scikit-learn` |
+| **12** | PRJ-12 | Định giá Ô tô Đã qua Sử dụng Craigslist | Định giá & Kinh doanh TMĐT | 426k+ dòng | Hồi quy | `pandas`, `numpy`, `scikit-learn` |
+| **13** | PRJ-13 | Dự báo Rủi ro Giao hàng Chậm trễ Chuỗi Cung ứng | Logistics & Chuỗi Cung ứng | 180k+ dòng | Phân loại | `pandas`, `scikit-learn` |
+| **14** | PRJ-14 | Dự báo Nhu cầu Tồn kho Hàng Bán lẻ Rossmann | Quản trị Kho hàng | 1M+ dòng (2 bảng) | Hồi quy & Chuỗi thời gian | `pandas`, `scikit-learn` |
+| **15** | PRJ-15 | Dự báo Cước Vận tải Biển Quốc tế | Kinh doanh Quốc tế | 120k+ dòng | Hồi quy | `pandas`, `statsmodels`, `scikit-learn` |
+| **16** | PRJ-16 | Phân tích Hiệu suất Giao hàng Chặng cuối | Vận hành & Logistics Đô thị | 500k+ dòng | Hồi quy | `numpy`, `pandas`, `scikit-learn` |
+| **17** | PRJ-17 | Đánh giá Rủi ro Nhà Cung cấp Chuỗi Cung ứng | Quản trị Thu mua | 100k+ dòng | Phân cụm & Xếp hạng | `pandas`, `scikit-learn`, `seaborn` |
+| **18** | PRJ-18 | Định giá Bất động sản Nhà ở Đô thị | Kinh doanh Bất động sản | 200k+ dòng | Hồi quy OLS & Ridge/Lasso | `statsmodels`, `scikit-learn` |
+| **19** | PRJ-19 | Dự báo Giá Thuê Phòng Airbnb Lịch Chi tiết | Du lịch – Khách sạn | 1M+ dòng (2 bảng) | Hồi quy | `pandas`, `scikit-learn`, `seaborn` |
+| **20** | PRJ-20 | Dự báo Khả năng Hủy Đặt phòng Khách sạn | Quản trị Doanh thu Khách sạn | 119k+ dòng | Phân loại | `pandas`, `scikit-learn`, `matplotlib` |
+| **21** | PRJ-21 | Phân tích Hài lòng Khách Hàng không | Kinh tế Du lịch & Hàng không | 129k+ dòng | Phân loại & EDA | `pandas`, `seaborn`, `scikit-learn` |
+| **22** | PRJ-22 | Dự báo Nhu cầu Xe đạp Chia sẻ CitiBike | Kinh tế Đô thị & Chia sẻ | 500k+ dòng (nhiều file)| Hồi quy | `pandas`, `datetime`, `scikit-learn` |
+| **23** | PRJ-23 | Dự báo Nguy cơ Nghỉ việc của Nhân sự | Quản trị Nhân sự (HRM) | 100k+ dòng | Phân loại | `pandas`, `scipy`, `scikit-learn` |
+| **24** | PRJ-24 | Dự báo Mức lương & Định chuẩn Đãi ngộ | Quản trị Tiền lương (C&B) | 100k+ dòng | Hồi quy | `pandas`, `numpy`, `scikit-learn` |
+| **25** | PRJ-25 | Phân tích Làm việc Từ xa và Năng suất Toàn cầu | Hành vi Tổ chức | 100k+ dòng | Kiểm định Thống kê & EDA | `pandas`, `scipy.stats`, `seaborn` |
+| **26** | PRJ-26 | Phân loại & Sàng lọc Tin Tuyển dụng LinkedIn | Tuyển dụng Nhân sự | 100k+ dòng | Xử lý Văn bản & Phân loại | `re`, `pandas`, `scikit-learn` |
+| **27** | PRJ-27 | Phân tích Hiệu suất và Đề bạt Thăng tiến | Quản trị Hiệu suất (KPI) | 100k+ dòng | Phân loại | `pandas`, `seaborn`, `scikit-learn` |
+| **28** | PRJ-28 | Dự báo Tỷ lệ Lạm phát & CPI Toàn cầu | Kinh tế Vĩ mô | 150k+ dòng | Chuỗi thời gian & Hồi quy | `pandas`, `statsmodels` (OLS) |
+| **29** | PRJ-29 | Tác động của FDI & Thương mại đến GDP | Kinh tế Quốc tế | 250k+ dòng | Hồi quy Đa biến (Econometrics)| `pandas`, `statsmodels`, `seaborn` |
+| **30** | PRJ-30 | Phân tích Điểm ESG và Giá trị Doanh nghiệp | Tài chính Bền vững | 100k+ dòng | Tương quan & Hồi quy OLS | `pandas`, `scipy`, `statsmodels` |
+| **31** | PRJ-31 | Phân tích Bất bình đẳng Thu nhập US Census | Kinh tế Xã hội & An sinh | 300k+ dòng | Phân loại | `pandas`, `scikit-learn`, `seaborn` |
+| **32** | PRJ-32 | Tiêu thụ Năng lượng Tái tạo & Phát thải CO2 | Kinh tế Môi trường | 100k+ dòng | Chuỗi thời gian & Hồi quy | `pandas`, `matplotlib`, `scikit-learn` |
+| **33** | PRJ-33 | Dự báo Tỷ lệ Hoàn trả Hàng TMĐT | Thương mại Điện tử | 500k+ dòng | Phân loại | `pandas`, `seaborn`, `scikit-learn` |
+| **34** | PRJ-34 | Dự báo Mua Hàng Lặp lại Khách hàng TMĐT | Marketing Dữ liệu | 1M+ dòng (2 bảng) | Phân loại | `pandas`, `numpy`, `scikit-learn` |
+| **35** | PRJ-35 | Tiêu thụ Điện Hộ gia đình & Dự báo Phụ tải | Kinh tế Năng lượng | 2M+ dòng | Chuỗi thời gian & Hồi quy | `pandas`, `statsmodels`, `scikit-learn` |
+| **36** | PRJ-36 | Rủi ro Chậm Trả Nợ Vay Học tập Sinh viên | Tài chính Giáo dục | 120k+ dòng | Hồi quy & Kiểm định | `pandas`, `scipy`, `statsmodels` |
+| **37** | PRJ-37 | Phân tích Tương tác & Rời bỏ App Di động | Kinh doanh Số | 150k+ dòng | Phân loại | `pandas`, `seaborn`, `scikit-learn` |
+| **38** | PRJ-38 | Dự báo Nhu cầu Xe Công nghệ & Giá Cao điểm | Kinh tế Nền tảng | 400k+ dòng | Hồi quy & Không gian | `pandas`, `numpy`, `scikit-learn` |
+| **39** | PRJ-39 | Doanh thu Phòng vé & Hiệu quả Phim Điện ảnh | Kinh tế Giải trí | 100k+ dòng | Hồi quy | `pandas`, `statsmodels`, `scikit-learn` |
+| **40** | PRJ-40 | Dự báo Phá sản & Mất Thanh toán Doanh nghiệp | Tài chính Doanh nghiệp | 100k+ dòng | Phân loại | `pandas`, `scikit-learn`, `seaborn` |
+| **41** | PRJ-41 | Phân loại Hành vi & Chấm điểm Tín dụng | Ngân hàng Bán lẻ | 100k+ dòng | Phân loại Đa lớp | `pandas`, `scikit-learn` |
+| **42** | PRJ-42 | Định giá Tiền thuê Căn hộ Đô thị Hàng tháng | Bất động sản Cho thuê | 100k+ dòng | Hồi quy OLS & Random Forest | `pandas`, `statsmodels`, `scikit-learn` |
+
+---
+
+# PHẦN 7: HƯỚNG DẪN THỰC HIỆN ĐỒ ÁN VỚI ANTIGRAVITY IDE (AI-FIRST & VIBE CODING)
+
+---
+
+## 1. Triết lý Sư phạm Đảo ngược (Reverse Pedagogy: P-D-M-V)
+
+Sinh viên được khuyến khích tối đa việc sử dụng **Antigravity IDE** trong suốt quá trình thực hiện đồ án, song bắt buộc phải tuân thủ nguyên tắc **P-D-M-V**:
+
+1. **Prompt & Produce:** Đặt câu lệnh rõ ràng, mô tả bối cảnh kinh tế cụ thể để AI sinh mã nguồn tiền xử lý và mô hình hóa.
+2. **Deconstruct & Read:** Bóc tách, đọc hiểu bản chất từng dòng lệnh (`pd.merge()`, `groupby`, `StandardScaler`, `fit_transform`, `classification_report`).
+3. **Mutate & Break:** Chủ động thử nghiệm thay đổi tham số (ví dụ: thay đổi tỷ lệ `test_size`, thử nghiệm các phương pháp điền giá trị khuyết khác nhau, loại bỏ ngoại lai) để quan sát sự thay đổi của kết quả mô hình và rút ra bài học.
+4. **Validate & Refine:** Tự tay kiểm chứng mô hình trên tập kiểm tra độc lập (Test Set), đối chiếu với lý thuyết kinh tế và tự viết báo cáo phân tích bằng văn phong học thuật của chính mình.
+5. **Đạo đức AI & Minh bạch học thuật:** Mọi đoạn mã lệnh và ý tưởng do AI hỗ trợ phải được kiểm tra tính xác thực (tránh hiện tượng ảo giác AI) và ghi chép minh bạch tại tệp `nhật ký làm việc.md`.
+
+---
+
+## 2. Mẫu Cấu trúc Chuẩn Tệp `nhật ký làm việc.md` (Template Bắt Buộc)
+
+Mỗi nhóm sinh viên bắt buộc phải tạo tệp `nhật ký làm việc.md` tại thư mục gốc của dự án theo mẫu sau và liên tục cập nhật sau mỗi phiên làm việc:
+
+````markdown
+# Nhật ký Làm việc Dự án
+
+Tệp này tự động lưu vết các phiên làm việc giữa Nhóm sinh viên và Antigravity IDE.  
+- **Tên đề tài:** [Mã đề tài & Tên đề tài]
+- **Nhóm sinh viên thực hiện:** [Họ tên & MSSV các thành viên]
+
+---
+
+## [YYYY-MM-DD HH:MM] - [Tiêu đề Tóm tắt Phiên làm việc]
+- **Môi trường:** macOS (hoặc Windows / Linux)
+- **Mục tiêu phiên:** Mô tả bài toán hoặc tính năng cần giải quyết trong phiên này.
+- **Nội dung đã hoàn thành:**
+  - Mô tả chi tiết các tác vụ đã thực hiện thành công.
+  - Các tệp đã tạo hoặc sửa đổi kèm link Markdown: `[tên_file.py](file:///đường_dẫn)`.
+- **Tương tác Prompt & Quyết định kỹ thuật:**
+  - *Prompt chiến lược đã thực thi:* "Gợi ý prompt chính đã đưa cho Antigravity IDE..."
+  - *Kinh nghiệm bóc tách code & Mutate/Break:* Bẫy lỗi đã phát hiện hoặc tham số đã thử nghiệm thay đổi.
+  - *Quyết định kiến trúc:* Lựa chọn thuật toán, cách xử lý dữ liệu khuyết, tối ưu hóa bộ nhớ.
+- **Tồn đọng & Bước tiếp theo:** 2–3 đầu việc ưu tiên cần làm trong phiên tiếp theo.
+
+---
+````

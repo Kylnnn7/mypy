@@ -1,0 +1,2 @@
+data/power_clean_csv1.csv filter=lfs diff=lfs merge=lfs -text
+data/nguon_goc/*CSV1.csv filter=lfs diff=lfs merge=lfs -text
